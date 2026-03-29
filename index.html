@@ -21,6 +21,8 @@
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
+  svg circle { cursor: pointer; }
+
   body {
     font-family: 'Instrument Sans', sans-serif;
     background: var(--paper);
@@ -882,12 +884,12 @@
             </linearGradient>
           </defs>
           <polygon points="10,110 50,90 90,75 130,55 170,45 210,30 210,120 10,120" fill="url(#grad)"/>
-          <circle cx="10" cy="110" r="4" fill="var(--accent)"/>
-          <circle cx="50" cy="90" r="4" fill="var(--accent)"/>
-          <circle cx="90" cy="75" r="4" fill="var(--accent)"/>
-          <circle cx="130" cy="55" r="4" fill="var(--accent)"/>
-          <circle cx="170" cy="45" r="4" fill="var(--accent)"/>
-          <circle cx="210" cy="30" r="4" fill="var(--accent)"/>
+          <circle cx="10"  cy="110" r="6" fill="var(--accent)" onclick="handlePointClick('Oct', this)"/>
+          <circle cx="50"  cy="90"  r="6" fill="var(--accent)" onclick="handlePointClick('Nov', this)"/>
+          <circle cx="90"  cy="75"  r="6" fill="var(--accent)" onclick="handlePointClick('Dec', this)"/>
+          <circle cx="130" cy="55"  r="6" fill="var(--accent)" onclick="handlePointClick('Jan', this)"/>
+          <circle cx="170" cy="45"  r="6" fill="var(--accent)" onclick="handlePointClick('Feb', this)"/>
+          <circle cx="210" cy="30"  r="6" fill="var(--accent)" onclick="handlePointClick('Mar', this)"/>
           <text x="10" y="125" font-size="9" fill="var(--muted)" font-family="DM Mono">Oct</text>
           <text x="50" y="125" font-size="9" fill="var(--muted)" font-family="DM Mono">Nov</text>
           <text x="90" y="125" font-size="9" fill="var(--muted)" font-family="DM Mono">Dec</text>
@@ -2634,6 +2636,30 @@ document.addEventListener('DOMContentLoaded', () => {
     if (b.textContent.includes(weak.split(' ')[0])) b.classList.add('active');
   });
 });
+// ── STEP 2 & 4: Clickable chart point handler ──
+function handlePointClick(month, circleEl) {
+  // Update the key insight banner text
+  const messages = {
+    Oct: 'In <strong>October</strong>, errors peaked at 38 — mostly sign errors during polynomial substitution.',
+    Nov: 'In <strong>November</strong>, errors dropped to 31 after introducing sign-tracking practice.',
+    Dec: 'In <strong>December</strong>, formula recall improved — errors fell to 26.',
+    Jan: 'In <strong>January</strong>, Socratic session frequency increased — errors down to 19.',
+    Feb: 'In <strong>February</strong>, substitution accuracy improved significantly — only 15 errors.',
+    Mar: 'In <strong>March</strong>, errors reduced to 10 — a <strong>↓34% overall reduction</strong> since October.'
+  };
+  document.getElementById('key-insight-text').innerHTML =
+    `📊 ${messages[month] || 'Click a data point to see monthly details.'}`;
+
+  // Dynamic binding: highlight clicked point, reset others
+  document.querySelectorAll('#screen-insights svg circle').forEach(c => {
+    c.setAttribute('r', '6');
+    c.style.opacity = '1';
+  });
+  if (circleEl) {
+    circleEl.setAttribute('r', '9');
+    circleEl.style.opacity = '0.85';
+  }
+}
 </script>
 </body>
 </html>
