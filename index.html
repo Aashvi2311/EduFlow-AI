@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduFlow AI — The Socratic Learning Engine</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav>
+  <div class="logo">EduFlow <span>AI</span></div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showScreen('dashboard')">Dashboard</button>
+    <button class="nav-tab" onclick="showScreen('tutor')">Socratic Tutor</button>
+    <button class="nav-tab" onclick="showScreen('worksheet')">Worksheets</button>
+    <button class="nav-tab" onclick="showScreen('insights')">Insights</button>
+    <button class="nav-tab" onclick="showScreen('snap')">Snap-to-Solve</button>
+    <button class="nav-tab" onclick="showScreen('aifeatures')">✦ AI Tools</button>
+  </div>
+  <div class="nav-badge">Arjun · Class 10</div>
+</nav>
+
+<!-- ═══════════════ DASHBOARD ═══════════════ -->
+<div id="screen-dashboard" class="screen active">
+  <div class="dashboard">
+    <div class="dash-header">
+      <h1>Good evening, <em>Arjun.</em><br>Ready to think deeper?</h1>
+      <p id="dash-subtitle">Wednesday, 26 March · 3 sessions this week · Algebra weak area flagged</p>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Sessions Completed</div>
+        <div class="stat-value" id="stat-sessions">47</div>
+        <div class="stat-sub"><span class="stat-up">↑ 8</span> this month</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Answer Accuracy</div>
+        <div class="stat-value" id="stat-accuracy">73%</div>
+        <div class="stat-sub"><span class="stat-up">Live tracking</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Weak Topic</div>
+        <div class="stat-value" style="font-size:1.05rem;padding-top:6px" id="stat-weak">Polynomials</div>
+        <div class="stat-sub"><span class="stat-down">Needs focus</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Study Streak</div>
+        <div class="stat-value" id="stat-streak">12</div>
+        <div class="stat-sub">days in a row 🔥</div>
+      </div>
+    </div>
+
+    <div class="insight-summary" id="insight-summary">
+      📊 <strong>Key Insight:</strong> You make <strong>62%</strong> of your mistakes in <strong>Polynomials</strong>, mainly due to <strong>sign errors</strong> during substitution. Your strongest topic is Linear Equations at <strong>82%</strong>.
+    </div>
+
+    <div class="dash-grid">
+      <div>
+        <div class="panel">
+          <div class="panel-title">Topic Mastery</div>
+          <div class="topic-row">
+            <span class="topic-name">Linear Equations</span>
+            <div class="topic-bar-wrap"><div class="topic-bar" style="width:82%;background:var(--green)"></div></div>
+            <span class="topic-pct">82%</span>
+          </div>
+          <div class="topic-row">
+            <span class="topic-name">Quadratic Equations</span>
+            <div class="topic-bar-wrap"><div class="topic-bar" style="width:65%;background:var(--gold)"></div></div>
+            <span class="topic-pct">65%</span>
+          </div>
+          <div class="topic-row">
+            <span class="topic-name">Triangles & Geometry</span>
+            <div class="topic-bar-wrap"><div class="topic-bar" style="width:78%;background:var(--green)"></div></div>
+            <span class="topic-pct">78%</span>
+          </div>
+          <div class="topic-row">
+            <span class="topic-name">Polynomials ⚠</span>
+            <div class="topic-bar-wrap"><div class="topic-bar" style="width:41%;background:var(--accent)"></div></div>
+            <span class="topic-pct">41%</span>
+          </div>
+          <div class="topic-row">
+            <span class="topic-name">Probability</span>
+            <div class="topic-bar-wrap"><div class="topic-bar" style="width:70%;background:var(--green)"></div></div>
+            <span class="topic-pct">70%</span>
+          </div>
+          <div class="topic-row">
+            <span class="topic-name">Arithmetic Progressions</span>
+            <div class="topic-bar-wrap"><div class="topic-bar" style="width:55%;background:var(--gold)"></div></div>
+            <span class="topic-pct">55%</span>
+          </div>
+        </div>
+
+        <div class="panel" style="margin-top:14px">
+          <div class="panel-title">Quick Actions</div>
+          <button class="action-btn" onclick="showScreen('tutor')"><span class="icon">🧠</span> Start a Socratic session on your weak topic</button>
+          <button class="action-btn" onclick="showScreen('worksheet')"><span class="icon">📋</span> Generate today's personalised worksheet</button>
+          <button class="action-btn" onclick="showScreen('snap')"><span class="icon">📷</span> Snap & analyse notebook work</button>
+        </div>
+      </div>
+
+      <div>
+        <div class="panel" style="margin-bottom:14px">
+          <div class="panel-title" style="display:flex;align-items:center;gap:8px">
+            Recent Mistake Patterns
+            <span id="weak-badge" style="display:none;font-size:0.66rem;padding:2px 7px;border-radius:4px;background:#fde8e2;color:var(--accent);font-family:'DM Mono',monospace"></span>
+          </div>
+          <div id="live-mistake-list">
+            <div class="mistake-item"><span class="mistake-tag tag-algebra">Polynomials</span><div>Sign mistake in p(2) — wrote +12 instead of −12</div></div>
+            <div class="mistake-item"><span class="mistake-tag tag-geo">Geometry</span><div>Confusing angle bisector with perpendicular bisector</div></div>
+            <div class="mistake-item"><span class="mistake-tag tag-algebra">Polynomials</span><div>Forgot to substitute into all terms of p(x)</div></div>
+            <div class="mistake-item"><span class="mistake-tag tag-ap">AP</span><div>Incorrect formula: used Sₙ = n/2(a+l) instead of standard form</div></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">Study Streak · March</div>
+          <div class="streak-dots">
+            <div class="dot dot-done"></div><div class="dot dot-done"></div><div class="dot dot-done"></div>
+            <div class="dot dot-miss"></div><div class="dot dot-done"></div><div class="dot dot-done"></div>
+            <div class="dot dot-done"></div><div class="dot dot-done"></div><div class="dot dot-done"></div>
+            <div class="dot dot-miss"></div><div class="dot dot-done"></div><div class="dot dot-done"></div>
+            <div class="dot dot-done"></div><div class="dot dot-done"></div><div class="dot dot-done"></div>
+            <div class="dot dot-done"></div><div class="dot dot-done"></div><div class="dot dot-done"></div>
+            <div class="dot dot-done"></div><div class="dot dot-done"></div><div class="dot dot-done"></div>
+            <div class="dot dot-done"></div><div class="dot dot-done"></div><div class="dot dot-done"></div>
+            <div class="dot dot-done"></div><div class="dot dot-today"></div>
+          </div>
+          <p style="font-size:0.75rem;color:var(--muted);margin-top:10px">🟩 Completed &nbsp;&nbsp; 🟥 Today &nbsp;&nbsp; ◻ Missed</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ TUTOR ═══════════════ -->
+<div id="screen-tutor" class="screen">
+  <div class="tutor-layout">
+    <div class="tutor-sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-label">Mathematics · Class 10</div>
+        <button class="topic-btn" onclick="selectTopic(this,'Linear Equations')">Linear Equations <span class="difficulty">Med</span></button>
+        <button class="topic-btn" onclick="selectTopic(this,'Polynomials')">Polynomials <span class="difficulty">Hard</span></button>
+        <button class="topic-btn" onclick="selectTopic(this,'Quadratic Equations')">Quadratic Equations <span class="difficulty">Hard</span></button>
+        <button class="topic-btn" onclick="selectTopic(this,'Geometry – Triangles')">Geometry – Triangles <span class="difficulty">Med</span></button>
+        <button class="topic-btn" onclick="selectTopic(this,'Arithmetic Progressions')">Arith. Progressions <span class="difficulty">Easy</span></button>
+        <button class="topic-btn" onclick="selectTopic(this,'Probability')">Probability <span class="difficulty">Easy</span></button>
+        <button class="topic-btn" onclick="selectTopic(this,'Circles')">Circles <span class="difficulty">Med</span></button>
+        <button class="topic-btn" onclick="selectTopic(this,'Coordinate Geometry')">Coord. Geometry <span class="difficulty">Med</span></button>
+      </div>
+      <div class="sidebar-section" id="ai-prediction-section">
+        <div class="sidebar-label">AI Prediction</div>
+        <div id="predicted-mistake" class="prediction-banner"></div>
+        <div id="confidence-display" style="font-size:0.77rem;color:var(--muted);line-height:1.9">
+          <div>Difficulty: <strong id="diff-label" style="color:var(--ink)">medium</strong></div>
+          <div>Error pattern: <strong id="err-label" style="color:var(--accent)">sign</strong></div>
+          <div>Questions: <strong id="q-count" style="color:var(--ink)">3</strong></div>
+        </div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Session Info</div>
+        <div style="font-size:0.8rem;color:var(--muted);line-height:1.9">
+          <div>Mode: <strong style="color:var(--ink)">Socratic</strong></div>
+          <div>Weak area: <strong style="color:var(--accent)" id="sidebar-weak">Polynomials</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tutor-main">
+      <div class="problem-header">
+        <div>
+          <div class="topic-badge" id="topic-badge">🎯 Current Topic</div>
+          <div class="problem-title" id="current-topic">Loading problem…</div>
+          <div class="problem-meta" id="problem-meta">Difficulty: Medium · Adaptive Mode</div>
+          <div class="step-tracker" id="step-tracker"></div>
+        </div>
+        <span class="mode-pill mode-socratic">Socratic Mode</span>
+      </div>
+
+      <!-- Predictive Error Warning Banner (shown before answer) -->
+      <div id="predictive-warning" class="predictive-warning" style="margin:12px 24px 0;display:none">
+        <span class="pw-icon">⚠️</span><span id="predictive-warning-text"></span>
+      </div>
+
+      <div class="chat-area" id="chat-area"></div>
+
+      <div class="chat-input-area">
+        <div class="chat-options" id="chat-chips">
+          <button class="opt-chip" onclick="quickReply('I need a hint please')">Need a hint</button>
+          <button class="opt-chip" onclick="quickReply('Can you show me the next step?')">Show next step</button>
+          <button class="opt-chip" onclick="quickReply('I want to try a different problem')">Different problem</button>
+          <button class="opt-chip" onclick="loadNewProblem()">🔄 New Topic</button>
+        </div>
+        <div class="chat-row">
+          <input class="chat-input" id="chat-input" placeholder="Type your answer or reasoning…">
+          <button class="send-btn" id="send-btn" onclick="sendMessage()">Send →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ WORKSHEET ═══════════════ -->
+<div id="screen-worksheet" class="screen">
+  <div class="focus-overlay" onclick="toggleFocusMode()"></div>
+  <div class="worksheet-page">
+    <div class="ws-header">
+      <div>
+        <div class="ws-title">Personalised Worksheet</div>
+        <div class="ws-meta" id="ws-meta-label">Generated · Focus: Weak areas · Est. 35 min</div>
+      </div>
+      <div class="ws-actions">
+        <button class="btn-outline" onclick="toggleFocusMode()">🎯 Focus Mode</button>
+        <button class="btn-outline" onclick="generateSmartWorksheet()">🔄 New Worksheet</button>
+        <button class="btn-fill" onclick="checkAnswers()">Submit & Analyse</button>
+      </div>
+    </div>
+
+    <div class="ws-progress">
+      <span id="ws-progress-label">0/5 attempted</span>
+      <div class="ws-progress-bar"><div class="ws-progress-fill" id="ws-progress-fill" style="width:0%"></div></div>
+    </div>
+
+    <div id="ws-questions-container"></div>
+
+    <div id="ws-result" style="display:none;margin-top:20px"></div>
+
+    <div class="panel" style="margin-top:20px;border-color:#e8d8a8;background:#fff9ed">
+      <div id="smart-ws-container">
+        <div class="panel-title">Smart Practice · Loading…</div>
+        <div style="color:var(--muted);font-size:0.84rem;font-style:italic">Personalised questions based on your weak areas will appear here.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ INSIGHTS ═══════════════ -->
+<div id="screen-insights" class="screen">
+  <div class="insights-page">
+    <div class="insights-header">
+      <h1>Learning Insights</h1>
+      <p>Arjun · March 2025 · For sharing with teacher or parent</p>
+    </div>
+
+    <div class="key-insight-banner" id="key-insight-banner">
+      <div class="key-insight-label">⚡ AI Key Insight</div>
+      <div class="key-insight-text" id="key-insight-text">
+        You make <strong>62% of your mistakes in Polynomials</strong>, mainly due to <strong>sign errors</strong> during substitution. Your strongest topic is Linear Equations at 82%. Focus this week: practice sign-tracking in polynomial calculations.
+      </div>
+    </div>
+
+    <div class="insights-grid" id="insights-grid">
+
+      <div class="chart-panel weak-highlight">
+        <div class="chart-title">Weekly Accuracy by Topic ⚠ Weak areas highlighted</div>
+        <div class="bar-chart" id="accuracy-bar-chart">
+          <div class="bar-group"><div class="bar" style="height:82%;background:var(--green)"></div><div class="bar-label">Linear</div><div class="bar-pct">82%</div></div>
+          <div class="bar-group"><div class="bar" style="height:41%;background:var(--accent)"></div><div class="bar-label">Poly</div><div class="bar-pct">41%</div></div>
+          <div class="bar-group"><div class="bar" style="height:65%;background:var(--gold)"></div><div class="bar-label">Quad</div><div class="bar-pct">65%</div></div>
+          <div class="bar-group"><div class="bar" style="height:78%;background:var(--green)"></div><div class="bar-label">Geo</div><div class="bar-pct">78%</div></div>
+          <div class="bar-group"><div class="bar" style="height:70%;background:var(--green)"></div><div class="bar-label">Prob</div><div class="bar-pct">70%</div></div>
+          <div class="bar-group"><div class="bar" style="height:55%;background:var(--gold)"></div><div class="bar-label">AP</div><div class="bar-pct">55%</div></div>
+        </div>
+      </div>
+
+      <div class="chart-panel">
+        <div class="chart-title">Mistake Reduction Trend</div>
+        <svg viewBox="0 0 240 130" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:100%">
+          <polyline points="10,110 50,90 90,75 130,55 170,45 210,30" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/>
+          <defs>
+            <linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="var(--accent)" stop-opacity="0.15"/>
+              <stop offset="100%" stop-color="var(--accent)" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <polygon points="10,110 50,90 90,75 130,55 170,45 210,30 210,120 10,120" fill="url(#grad)"/>
+          <circle cx="10"  cy="110" r="6" fill="var(--accent)" onclick="handlePointClick('Oct', this)"/>
+          <circle cx="50"  cy="90"  r="6" fill="var(--accent)" onclick="handlePointClick('Nov', this)"/>
+          <circle cx="90"  cy="75"  r="6" fill="var(--accent)" onclick="handlePointClick('Dec', this)"/>
+          <circle cx="130" cy="55"  r="6" fill="var(--accent)" onclick="handlePointClick('Jan', this)"/>
+          <circle cx="170" cy="45"  r="6" fill="var(--accent)" onclick="handlePointClick('Feb', this)"/>
+          <circle cx="210" cy="30"  r="6" fill="var(--accent)" onclick="handlePointClick('Mar', this)"/>
+          <text x="10" y="125" font-size="9" fill="var(--muted)" font-family="DM Mono">Oct</text>
+          <text x="50" y="125" font-size="9" fill="var(--muted)" font-family="DM Mono">Nov</text>
+          <text x="90" y="125" font-size="9" fill="var(--muted)" font-family="DM Mono">Dec</text>
+          <text x="130" y="125" font-size="9" fill="var(--muted)" font-family="DM Mono">Jan</text>
+          <text x="170" y="125" font-size="9" fill="var(--muted)" font-family="DM Mono">Feb</text>
+          <text x="205" y="125" font-size="9" fill="var(--muted)" font-family="DM Mono">Mar</text>
+          <text x="178" y="28" font-size="9" fill="var(--green)" font-family="DM Mono">↓34%</text>
+        </svg>
+      </div>
+
+      <div class="chart-panel full-width">
+        <div class="chart-title">Recurring Error Patterns — Detected by AI</div>
+        <div id="pattern-list">
+          <div class="pattern-item">
+            <div class="pattern-icon icon-red">⚠️</div>
+            <div class="pattern-body">
+              <div class="pattern-name">Sign Errors in Substitution</div>
+              <div class="pattern-desc">Arjun consistently flips signs when substituting negative values, especially in polynomial evaluations. Detected in 7 of last 10 algebra problems.</div>
+            </div>
+            <div class="pattern-freq">7/10</div>
+          </div>
+          <div class="pattern-item">
+            <div class="pattern-icon icon-gold">💡</div>
+            <div class="pattern-body">
+              <div class="pattern-name">Formula Selection Errors</div>
+              <div class="pattern-desc">Applies Sₙ = n/2(a+l) instead of Sₙ = n/2(2a+(n−1)d) in AP problems where the last term isn't given. Improving this month.</div>
+            </div>
+            <div class="pattern-freq">4/10</div>
+          </div>
+          <div class="pattern-item">
+            <div class="pattern-icon icon-blue">🔵</div>
+            <div class="pattern-body">
+              <div class="pattern-name">Theorem Application Confusion</div>
+              <div class="pattern-desc">Occasionally applies Remainder Theorem where Factor Theorem is needed. Down from 6/10 to 2/10 sessions — significant improvement.</div>
+            </div>
+            <div class="pattern-freq">2/10</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-panel full-width">
+        <div class="chart-title">Study Activity Heatmap · Last 5 Weeks</div>
+        <div class="heatmap" style="margin-top:8px">
+          <div class="heatmap-cell heat-2">M</div><div class="heatmap-cell heat-0">T</div><div class="heatmap-cell heat-3">W</div><div class="heatmap-cell heat-1">T</div><div class="heatmap-cell heat-2">F</div><div class="heatmap-cell heat-0">S</div><div class="heatmap-cell heat-1">S</div>
+          <div class="heatmap-cell heat-3">M</div><div class="heatmap-cell heat-2">T</div><div class="heatmap-cell heat-0">W</div><div class="heatmap-cell heat-3">T</div><div class="heatmap-cell heat-2">F</div><div class="heatmap-cell heat-1">S</div><div class="heatmap-cell heat-0">S</div>
+          <div class="heatmap-cell heat-1">M</div><div class="heatmap-cell heat-3">T</div><div class="heatmap-cell heat-2">W</div><div class="heatmap-cell heat-2">T</div><div class="heatmap-cell heat-3">F</div><div class="heatmap-cell heat-0">S</div><div class="heatmap-cell heat-2">S</div>
+          <div class="heatmap-cell heat-2">M</div><div class="heatmap-cell heat-2">T</div><div class="heatmap-cell heat-3">W</div><div class="heatmap-cell heat-3">T</div><div class="heatmap-cell heat-2">F</div><div class="heatmap-cell heat-1">S</div><div class="heatmap-cell heat-0">S</div>
+          <div class="heatmap-cell heat-3">M</div><div class="heatmap-cell heat-3">T</div><div class="heatmap-cell heat-2">W</div><div class="heatmap-cell heat-2">T</div><div class="heatmap-cell heat-3">F</div><div class="heatmap-cell heat-1">S</div><div class="heatmap-cell heat-2">S</div>
+        </div>
+        <p style="font-size:0.72rem;color:var(--muted);margin-top:8px">■ High &nbsp; ■ Medium &nbsp; ■ Low &nbsp; □ No activity</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ SNAP TO SOLVE ═══════════════ -->
+<div id="screen-snap" class="screen">
+  <div style="padding:32px;max-width:680px;margin:0 auto">
+    <h1 style="font-family:'DM Serif Display',serif;font-size:1.9rem;margin-bottom:5px">Snap-to-Solve</h1>
+    <p style="color:var(--muted);margin-bottom:26px;font-size:0.9rem">Upload a photo of your notebook work — EduFlow AI will detect where you went wrong and guide you through the correction, step by step.</p>
+
+    <div class="snap-zone" onclick="simulateSnap()">
+      <div class="snap-icon">📷</div>
+      <div class="snap-title">Upload or drag a photo here</div>
+      <div class="snap-sub">Supports JPG, PNG · Handwritten or printed work</div>
+    </div>
+
+    <div id="snap-result" style="display:none">
+      <div class="panel" style="margin-bottom:14px">
+        <div class="panel-title">📸 Analysed: Quadratic equation notebook work</div>
+        <div style="font-size:0.86rem;color:var(--muted);margin-bottom:14px">Arjun — 26 March · 3 steps detected · 1 error found</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="padding:11px 15px;border-radius:8px;background:#e2f5ed;border:1px solid #a8d8c0">
+            <strong style="font-size:0.8rem;color:var(--green)">✅ Step 1 — Correct</strong>
+            <div style="font-size:0.86rem;margin-top:3px">Identified a=2, b=−7, c=3 from 2x²−7x+3 correctly.</div>
+          </div>
+          <div style="padding:11px 15px;border-radius:8px;background:#fde8e2;border:1px solid #f0b8a8">
+            <strong style="font-size:0.8rem;color:var(--accent)">❌ Step 2 — Error detected</strong>
+            <div style="font-size:0.86rem;margin-top:3px">You wrote b² = 7² = 47. But 7² = <strong>49</strong>. This cascaded into an incorrect discriminant.</div>
+          </div>
+          <div style="padding:11px 15px;border-radius:8px;background:var(--cream);border:1px solid var(--border)">
+            <strong style="font-size:0.8rem;color:var(--muted)">⏸ Step 3 — Skipped</strong>
+            <div style="font-size:0.86rem;margin-top:3px">Verification by substitution not attempted.</div>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">🤖 Socratic Follow-up</div>
+        <div style="font-size:0.88rem;line-height:1.7;margin-bottom:14px">
+          You had the right <em>method</em> — you knew to use the quadratic formula and correctly identified the coefficients.<br><br>
+          <strong>Before we fix it: what is 7²? And how would that error change your final roots?</strong>
+        </div>
+        <button class="btn-fill" onclick="showScreen('tutor')">Continue in Socratic Tutor →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ AI TOOLS ═══════════════ -->
+<div id="screen-aifeatures" class="screen">
+  <div class="ai-page">
+    <div class="ai-page-header">
+      <h1>✦ AI Tools</h1>
+      <p>Live AI-powered features — each uses real student data for personalised output</p>
+    </div>
+
+    <div class="ai-features-grid">
+
+      <!-- 1. CONCEPT EXPLAINER -->
+      <div class="ai-card">
+        <div class="ai-card-header">
+          <div class="ai-card-icon">🔍</div>
+          <div>
+            <div class="ai-card-title">Concept Explainer</div>
+            <div class="ai-card-sub">Explanation + example + test question</div>
+          </div>
+        </div>
+        <div class="ai-card-body">
+          <div class="ai-tag">✦ LIVE AI</div>
+          <select class="concept-select" id="concept-select">
+            <option value="Factor Theorem">Factor Theorem</option>
+            <option value="Quadratic Formula">Quadratic Formula</option>
+            <option value="Remainder Theorem">Remainder Theorem</option>
+            <option value="Arithmetic Progressions">Arithmetic Progressions</option>
+            <option value="Pythagoras Theorem">Pythagoras Theorem</option>
+            <option value="Probability basics">Probability basics</option>
+            <option value="Similar Triangles">Similar Triangles</option>
+            <option value="Linear Equations in two variables">Linear Equations</option>
+          </select>
+          <div class="gen-label" style="margin-bottom:6px">Explain at level:</div>
+          <div class="explain-level">
+            <button class="level-btn active" onclick="setLevel(this,'beginner')">Beginner</button>
+            <button class="level-btn" onclick="setLevel(this,'standard')">Standard</button>
+            <button class="level-btn" onclick="setLevel(this,'deep-dive')">Deep Dive</button>
+          </div>
+          <div class="ai-output" id="explain-output"><span class="ai-output-placeholder">AI explanation will appear here — includes concept, worked example, and a quick test question…</span></div>
+          <button class="ai-run-btn" id="explain-btn" onclick="runExplainer()"><span>✦</span> Explain This Concept</button>
+        </div>
+      </div>
+
+      <!-- 2. AI WORKSHEET GENERATOR -->
+      <div class="ai-card">
+        <div class="ai-card-header">
+          <div class="ai-card-icon">📋</div>
+          <div>
+            <div class="ai-card-title">Worksheet Generator</div>
+            <div class="ai-card-sub">Personalised to your weak areas & errors</div>
+          </div>
+        </div>
+        <div class="ai-card-body">
+          <div class="ai-tag">✦ LIVE AI</div>
+          <div class="gen-options">
+            <div>
+              <div class="gen-label">Topic</div>
+              <select class="gen-select" id="gen-topic">
+                <option>Polynomials</option>
+                <option>Quadratic Equations</option>
+                <option>Linear Equations</option>
+                <option>Arithmetic Progressions</option>
+                <option>Triangles</option>
+              </select>
+            </div>
+            <div>
+              <div class="gen-label">Difficulty</div>
+              <select class="gen-select" id="gen-difficulty">
+                <option>Easy</option>
+                <option selected>Medium</option>
+                <option>Hard</option>
+                <option>Mixed</option>
+              </select>
+            </div>
+            <div>
+              <div class="gen-label">No. of Questions</div>
+              <select class="gen-select" id="gen-count">
+                <option>3</option>
+                <option selected>5</option>
+                <option>7</option>
+              </select>
+            </div>
+            <div>
+              <div class="gen-label">Target weak area</div>
+              <select class="gen-select" id="gen-weak">
+                <option>Yes — sign errors</option>
+                <option>Yes — formula recall</option>
+                <option>No focus</option>
+              </select>
+            </div>
+          </div>
+          <div class="gen-result" id="gen-result"></div>
+          <button class="ai-run-btn" id="gen-btn" onclick="runGenerator()"><span>✦</span> Generate Worksheet</button>
+        </div>
+      </div>
+
+      <!-- 3. AI PROGRESS REPORT -->
+      <div class="ai-card">
+        <div class="ai-card-header">
+          <div class="ai-card-icon">📊</div>
+          <div>
+            <div class="ai-card-title">AI Progress Report</div>
+            <div class="ai-card-sub">Data-driven analysis using live student stats</div>
+          </div>
+        </div>
+        <div class="ai-card-body">
+          <div class="ai-tag">✦ LIVE AI</div>
+          <div class="gen-label" style="margin-bottom:8px">Report type</div>
+          <div class="report-meta">
+            <button class="report-chip active" onclick="setReportType(this,'student')">For Student</button>
+            <button class="report-chip" onclick="setReportType(this,'parent')">For Parent</button>
+            <button class="report-chip" onclick="setReportType(this,'teacher')">For Teacher</button>
+          </div>
+          <div class="report-output" id="report-output"><span class="ai-output-placeholder">AI will write a data-driven progress report using your actual accuracy, mistakes, and trends…</span></div>
+          <button class="ai-run-btn" id="report-btn" onclick="runReport()"><span>✦</span> Generate Report</button>
+        </div>
+      </div>
+
+      <!-- 4. AI MISTAKE ANALYSER -->
+      <div class="ai-card">
+        <div class="ai-card-header">
+          <div class="ai-card-icon">🧪</div>
+          <div>
+            <div class="ai-card-title">Mistake Analyser</div>
+            <div class="ai-card-sub">What · Why · How to fix — Socratic diagnosis</div>
+          </div>
+        </div>
+        <div class="ai-card-body">
+          <div class="ai-tag">✦ LIVE AI</div>
+          <div class="gen-label">Paste the question</div>
+          <textarea id="mistake-q" style="width:100%;padding:8px 11px;border-radius:8px;border:1px solid var(--border);background:var(--paper);font-family:'Instrument Sans',sans-serif;font-size:0.82rem;resize:none;outline:none;margin-bottom:7px;color:var(--ink)" rows="2" placeholder="e.g. Solve 2x² − 7x + 3 = 0">Solve 2x² − 7x + 3 = 0</textarea>
+          <div class="gen-label">Paste student's wrong working</div>
+          <textarea id="mistake-a" style="width:100%;padding:8px 11px;border-radius:8px;border:1px solid var(--border);background:var(--paper);font-family:'DM Mono',monospace;font-size:0.8rem;resize:none;outline:none;margin-bottom:7px;color:var(--ink)" rows="3" placeholder="Show the student's working here…">a=2, b=7, c=3
+discriminant = 49 - 24 = 25
+x = (-7 ± 5) / 4
+x = -0.5 or x = -3</textarea>
+          <div class="ai-output" id="mistake-output" style="min-height:80px"><span class="ai-output-placeholder">AI will identify: what went wrong, why it happens, and how to fix the thinking…</span></div>
+          <button class="ai-run-btn" id="mistake-btn" onclick="runMistakeAnalyser()"><span>✦</span> Analyse This Mistake</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
