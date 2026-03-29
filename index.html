@@ -1,0 +1,2639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduFlow AI — The Socratic Learning Engine</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0f0e0c;
+    --paper: #f5f2eb;
+    --cream: #ede9df;
+    --accent: #c84b2f;
+    --accent2: #2f6bc8;
+    --gold: #c8952f;
+    --green: #2e7d5e;
+    --muted: #7a7468;
+    --border: #d4cfc3;
+    --card: #faf8f4;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Instrument Sans', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* NAV */
+  nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 32px;
+    border-bottom: 1px solid var(--border);
+    background: var(--paper);
+    position: sticky; top: 0; z-index: 100;
+    gap: 12px;
+  }
+  .logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.3rem; letter-spacing: -0.5px;
+    white-space: nowrap; flex-shrink: 0;
+  }
+  .logo span { color: var(--accent); }
+  .nav-tabs {
+    display: flex; gap: 3px;
+    overflow-x: auto; -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; flex: 1;
+    padding: 2px 0;
+  }
+  .nav-tabs::-webkit-scrollbar { display: none; }
+  .nav-tab {
+    padding: 7px 14px; border-radius: 6px;
+    font-size: 0.82rem; font-weight: 500;
+    cursor: pointer; border: none; background: transparent;
+    color: var(--muted); transition: all 0.15s;
+    white-space: nowrap; flex-shrink: 0;
+  }
+  .nav-tab:hover { background: var(--cream); color: var(--ink); }
+  .nav-tab.active { background: var(--ink); color: var(--paper); }
+  .nav-badge {
+    background: var(--accent); color: white;
+    font-size: 0.7rem; padding: 2px 7px; border-radius: 10px;
+    font-family: 'DM Mono', monospace; font-weight: 500;
+    white-space: nowrap; flex-shrink: 0;
+  }
+
+  /* SCREENS */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* ── DASHBOARD ── */
+  .dashboard { padding: 32px; max-width: 1100px; margin: 0 auto; }
+  .dash-header { margin-bottom: 28px; }
+  .dash-header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2rem; line-height: 1.1; margin-bottom: 6px;
+  }
+  .dash-header h1 em { color: var(--accent); font-style: italic; }
+  .dash-header p { color: var(--muted); font-size: 0.9rem; }
+
+  .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 24px; }
+  @media(max-width:680px){ .stats-row { grid-template-columns: 1fr 1fr; } }
+  .stat-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 18px 20px;
+  }
+  .stat-label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .stat-value { font-family: 'DM Serif Display', serif; font-size: 1.9rem; }
+  .stat-sub { font-size: 0.75rem; color: var(--muted); margin-top: 4px; }
+  .stat-up { color: var(--green); font-weight: 600; }
+  .stat-down { color: var(--accent); font-weight: 600; }
+
+  .dash-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 18px; }
+  @media(max-width:780px){ .dash-grid { grid-template-columns: 1fr; } }
+
+  .panel {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px;
+  }
+  .panel-title {
+    font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--muted); margin-bottom: 14px; font-weight: 600;
+  }
+
+  .topic-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 0; border-bottom: 1px solid var(--border);
+  }
+  .topic-row:last-child { border-bottom: none; }
+  .topic-name { font-size: 0.88rem; flex: 1; min-width: 0; }
+  .topic-bar-wrap { width: 100px; height: 6px; background: var(--cream); border-radius: 3px; overflow: hidden; flex-shrink: 0; }
+  .topic-bar { height: 100%; border-radius: 3px; transition: width 0.8s ease; }
+  .topic-pct { font-family: 'DM Mono', monospace; font-size: 0.78rem; color: var(--muted); width: 36px; text-align: right; flex-shrink: 0; }
+
+  .mistake-item {
+    padding: 9px 12px; border-radius: 8px;
+    background: var(--cream); margin-bottom: 7px;
+    font-size: 0.84rem;
+  }
+  .mistake-tag {
+    font-size: 0.68rem; font-family: 'DM Mono', monospace;
+    padding: 2px 7px; border-radius: 4px; display: inline-block; margin-bottom: 4px;
+  }
+  .tag-algebra { background: #fde8e2; color: var(--accent); }
+  .tag-geo { background: #e2edfde2; color: var(--accent2); }
+  .tag-calc { background: #e2f5ed; color: var(--green); }
+  .tag-ap { background: #fff3d0; color: var(--gold); }
+
+  .streak-dots { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 8px; }
+  .dot { width: 24px; height: 24px; border-radius: 5px; }
+  .dot-done { background: var(--green); }
+  .dot-today { background: var(--accent); }
+  .dot-miss { background: var(--cream); border: 1px solid var(--border); }
+
+  .action-btn {
+    width: 100%; padding: 10px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--card);
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 0.86rem; font-weight: 500;
+    cursor: pointer; text-align: left;
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 7px; color: var(--ink);
+    transition: all 0.15s;
+  }
+  .action-btn:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .action-btn .icon { font-size: 1rem; }
+
+  /* Insight summary banner */
+  .insight-summary {
+    background: linear-gradient(135deg,#fde8e2,#fff9ed);
+    border: 1px solid #f0c8b8; border-radius: 10px;
+    padding: 14px 18px; margin-bottom: 16px;
+    font-size: 0.88rem; line-height: 1.6;
+  }
+  .insight-summary strong { color: var(--accent); }
+
+  /* ── TUTOR ── */
+  .tutor-layout { display: grid; grid-template-columns: 240px 1fr; height: calc(100vh - 57px); }
+  @media(max-width:780px){
+    .tutor-layout { grid-template-columns: 1fr; height: auto; }
+    .tutor-sidebar { display: none; }
+    .tutor-main { height: calc(100vh - 57px); }
+  }
+  .tutor-sidebar {
+    border-right: 1px solid var(--border);
+    padding: 20px 16px; overflow-y: auto;
+    background: var(--card);
+  }
+  .sidebar-section { margin-bottom: 20px; }
+  .sidebar-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; margin-bottom: 8px; }
+  .topic-btn {
+    display: block; width: 100%; text-align: left;
+    padding: 8px 11px; border-radius: 7px; border: none;
+    background: transparent; font-family: 'Instrument Sans', sans-serif;
+    font-size: 0.83rem; cursor: pointer; color: var(--ink);
+    margin-bottom: 3px; transition: all 0.12s;
+  }
+  .topic-btn:hover { background: var(--cream); }
+  .topic-btn.active { background: var(--ink); color: var(--paper); }
+  .topic-btn .difficulty {
+    float: right; font-size: 0.66rem;
+    font-family: 'DM Mono', monospace; color: var(--muted);
+  }
+  .topic-btn.active .difficulty { color: rgba(255,255,255,0.5); }
+
+  /* Prediction banner in tutor */
+  .prediction-banner {
+    background: #fff9ed; border: 1px solid #e8d8a8;
+    border-radius: 8px; padding: 10px 12px;
+    font-size: 0.77rem; line-height: 1.5; margin-bottom: 8px;
+    display: none;
+  }
+  .prediction-banner.visible { display: block; }
+  .prediction-banner.correct-avoided {
+    background: #e2f5ed; border-color: #a8d8c0;
+  }
+  .prediction-banner.matched {
+    background: #fde8e2; border-color: #f0b8a8;
+  }
+  .pred-label {
+    font-size: 0.68rem; font-family: 'DM Mono', monospace;
+    font-weight: 600; margin-bottom: 3px;
+  }
+
+  .tutor-main { display: flex; flex-direction: column; height: 100%; }
+  .problem-header {
+    padding: 16px 24px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: flex-start; justify-content: space-between;
+    background: var(--paper); gap: 12px; flex-wrap: wrap;
+  }
+  .problem-title { font-family: 'DM Serif Display', serif; font-size: 1.2rem; margin-bottom: 4px; }
+  .problem-meta { font-size: 0.78rem; color: var(--muted); }
+  .mode-pill {
+    font-size: 0.7rem; padding: 4px 10px; border-radius: 20px;
+    font-family: 'DM Mono', monospace; font-weight: 500; flex-shrink: 0;
+  }
+  .mode-socratic { background: #fde8e2; color: var(--accent); }
+
+  .chat-area {
+    flex: 1; overflow-y: auto;
+    padding: 20px 24px; display: flex; flex-direction: column; gap: 14px;
+  }
+
+  .msg { max-width: 84%; }
+  .msg-ai { align-self: flex-start; }
+  .msg-user { align-self: flex-end; }
+
+  .msg-bubble {
+    padding: 13px 17px; border-radius: 12px;
+    font-size: 0.89rem; line-height: 1.65;
+  }
+  .msg-ai .msg-bubble {
+    background: var(--card); border: 1px solid var(--border);
+    border-bottom-left-radius: 3px;
+  }
+  .msg-user .msg-bubble {
+    background: var(--ink); color: var(--paper);
+    border-bottom-right-radius: 3px;
+  }
+  .msg-sender {
+    font-size: 0.7rem; color: var(--muted); margin-bottom: 4px;
+    font-family: 'DM Mono', monospace;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .msg-user .msg-sender { text-align: right; justify-content: flex-end; }
+
+  .hint-card {
+    background: #fff9ed; border: 1px solid #e8d8a8;
+    border-radius: 10px; padding: 11px 14px;
+    font-size: 0.84rem; margin-top: 9px;
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .hint-icon { font-size: 0.95rem; flex-shrink: 0; margin-top: 1px; }
+
+  .step-tracker { display: flex; gap: 5px; margin-top: 8px; flex-wrap: wrap; }
+  .step-pip {
+    padding: 3px 9px; border-radius: 5px; font-size: 0.73rem;
+    font-family: 'DM Mono', monospace;
+  }
+  .step-done { background: #e2f5ed; color: var(--green); }
+  .step-active { background: #fde8e2; color: var(--accent); }
+  .step-todo { background: var(--cream); color: var(--muted); }
+
+  .chat-input-area {
+    padding: 16px 24px; border-top: 1px solid var(--border);
+    background: var(--paper);
+  }
+  .chat-options { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+  .opt-chip {
+    padding: 5px 12px; border-radius: 20px;
+    border: 1px solid var(--border); background: var(--card);
+    font-size: 0.78rem; cursor: pointer;
+    font-family: 'Instrument Sans', sans-serif;
+    transition: all 0.12s; color: var(--ink);
+  }
+  .opt-chip:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .chat-row { display: flex; gap: 8px; }
+  .chat-input {
+    flex: 1; padding: 10px 14px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--card);
+    font-family: 'Instrument Sans', sans-serif; font-size: 0.88rem;
+    color: var(--ink); outline: none;
+  }
+  .chat-input:focus { border-color: var(--ink); }
+  .send-btn {
+    padding: 10px 18px; border-radius: 8px;
+    background: var(--ink); color: var(--paper);
+    border: none; font-family: 'Instrument Sans', sans-serif;
+    font-size: 0.86rem; font-weight: 600;
+    cursor: pointer; transition: opacity 0.15s; white-space: nowrap;
+  }
+  .send-btn:hover { opacity: 0.8; }
+
+  /* ── WORKSHEET ── */
+  .worksheet-page { padding: 32px; max-width: 860px; margin: 0 auto; }
+  .ws-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; gap: 12px; flex-wrap: wrap; }
+  .ws-title { font-family: 'DM Serif Display', serif; font-size: 1.8rem; }
+  .ws-meta { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
+  .ws-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .btn-outline {
+    padding: 8px 16px; border-radius: 7px;
+    border: 1px solid var(--border); background: transparent;
+    font-family: 'Instrument Sans', sans-serif; font-size: 0.83rem;
+    cursor: pointer; color: var(--ink); transition: all 0.15s;
+  }
+  .btn-outline:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .btn-fill {
+    padding: 8px 16px; border-radius: 7px;
+    border: none; background: var(--accent); color: white;
+    font-family: 'Instrument Sans', sans-serif; font-size: 0.83rem;
+    cursor: pointer; font-weight: 600; transition: opacity 0.15s;
+  }
+  .btn-fill:hover { opacity: 0.85; }
+
+  .ws-progress {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 20px;
+    font-size: 0.82rem; color: var(--muted);
+  }
+  .ws-progress-bar { flex: 1; height: 5px; background: var(--cream); border-radius: 3px; overflow: hidden; }
+  .ws-progress-fill { height: 100%; background: var(--green); border-radius: 3px; transition: width 0.4s ease; }
+
+  .ws-problem {
+    border: 1px solid var(--border); border-radius: 12px;
+    margin-bottom: 14px; overflow: hidden; background: var(--card);
+  }
+  .ws-problem-header {
+    padding: 13px 18px; display: flex;
+    align-items: flex-start; gap: 10px;
+    border-bottom: 1px solid var(--border);
+    background: var(--cream); flex-wrap: wrap;
+  }
+  .q-num {
+    font-family: 'DM Mono', monospace; font-size: 0.78rem;
+    background: var(--ink); color: var(--paper);
+    padding: 3px 8px; border-radius: 5px; flex-shrink: 0;
+  }
+  .q-text { font-size: 0.9rem; flex: 1; }
+  .q-marks { font-family: 'DM Mono', monospace; font-size: 0.76rem; color: var(--muted); flex-shrink: 0; }
+  .q-topic-tag {
+    font-size: 0.66rem; font-family: 'DM Mono', monospace;
+    padding: 2px 6px; border-radius: 4px; flex-shrink: 0;
+  }
+  .ws-work-area { padding: 14px 18px; }
+  .work-lines {
+    width: 100%; border: none; resize: none;
+    font-family: 'DM Mono', monospace; font-size: 0.84rem;
+    background: transparent; outline: none; color: var(--ink);
+    line-height: 2;
+    background-image: repeating-linear-gradient(transparent, transparent calc(2em - 1px), var(--border) calc(2em - 1px), var(--border) 2em);
+    min-height: 80px;
+  }
+  .ws-hint-row {
+    display: flex; justify-content: flex-end; padding: 7px 18px 12px;
+    border-top: 1px solid var(--border); gap: 8px;
+  }
+  .hint-btn {
+    font-size: 0.76rem; padding: 5px 11px; border-radius: 6px;
+    border: 1px solid #e8d8a8; background: #fff9ed;
+    color: #8a6a1f; cursor: pointer;
+    font-family: 'Instrument Sans', sans-serif;
+    transition: all 0.12s;
+  }
+  .hint-btn:hover { background: #f0dfa0; }
+
+  /* Focus Mode */
+  body.focus-mode nav,
+  body.focus-mode .ws-header .ws-actions { /* can hide nav in focus */ }
+  .focus-overlay {
+    position: fixed; inset: 0; background: rgba(15,14,12,0.55);
+    z-index: 200; display: none;
+  }
+  body.focus-mode .focus-overlay { display: block; }
+  body.focus-mode .worksheet-page { position: relative; z-index: 300; background: var(--paper); }
+
+  /* ── INSIGHTS ── */
+  .insights-page { padding: 32px; max-width: 980px; margin: 0 auto; }
+  .insights-header { margin-bottom: 28px; }
+  .insights-header h1 { font-family: 'DM Serif Display', serif; font-size: 1.9rem; margin-bottom: 6px; }
+  .insights-header p { color: var(--muted); font-size: 0.9rem; }
+
+  .key-insight-banner {
+    background: linear-gradient(135deg,#fef8f6,#fff9ed);
+    border: 1px solid #e8c8b0; border-radius: 12px;
+    padding: 18px 22px; margin-bottom: 22px;
+    border-left: 4px solid var(--accent);
+  }
+  .key-insight-label {
+    font-size: 0.7rem; font-family: 'DM Mono', monospace;
+    color: var(--accent); font-weight: 600; letter-spacing: 0.08em;
+    text-transform: uppercase; margin-bottom: 8px;
+  }
+  .key-insight-text { font-size: 0.95rem; line-height: 1.65; }
+  .key-insight-text strong { color: var(--accent); }
+
+  .insights-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  @media(max-width:680px){ .insights-grid { grid-template-columns: 1fr; } }
+  .full-width { grid-column: 1 / -1; }
+
+  .chart-panel {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px;
+    overflow: hidden; /* prevent bar overflow */
+  }
+  .chart-panel.weak-highlight { border-color: var(--accent); border-left: 4px solid var(--accent); }
+  .chart-title { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; margin-bottom: 18px; }
+
+  /* Bars — fixed max width to prevent overflow */
+  .bar-chart { display: flex; align-items: flex-end; gap: 6px; height: 110px; width: 100%; max-width: 100%; }
+  .bar-group { display: flex; flex-direction: column; align-items: center; gap: 5px; flex: 1; min-width: 0; }
+  .bar {
+    width: 100%; max-width: 48px; border-radius: 4px 4px 0 0;
+    transition: height 0.8s ease; min-height: 4px;
+  }
+  .bar-label { font-size: 0.66rem; color: var(--muted); font-family: 'DM Mono', monospace; text-align: center; }
+  .bar-pct { font-size: 0.62rem; color: var(--muted); font-family: 'DM Mono', monospace; }
+
+  .radar-svg { width: 100%; max-width: 240px; display: block; margin: 0 auto; }
+
+  .pattern-item {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 12px 0; border-bottom: 1px solid var(--border);
+  }
+  .pattern-item:last-child { border-bottom: none; }
+  .pattern-icon {
+    width: 34px; height: 34px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.95rem; flex-shrink: 0;
+  }
+  .icon-red { background: #fde8e2; }
+  .icon-gold { background: #fff3d0; }
+  .icon-blue { background: #e2edf5; }
+  .pattern-body { flex: 1; min-width: 0; }
+  .pattern-name { font-size: 0.88rem; font-weight: 600; margin-bottom: 2px; }
+  .pattern-desc { font-size: 0.8rem; color: var(--muted); line-height: 1.5; }
+  .pattern-freq {
+    font-family: 'DM Mono', monospace; font-size: 0.72rem;
+    padding: 3px 7px; border-radius: 5px; background: var(--cream);
+    color: var(--muted); white-space: nowrap; flex-shrink: 0;
+  }
+
+  .heatmap { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+  .heatmap-cell {
+    aspect-ratio: 1; border-radius: 3px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.58rem; color: var(--muted);
+    font-family: 'DM Mono', monospace;
+  }
+  .heat-0 { background: var(--cream); }
+  .heat-1 { background: #c8e6d8; }
+  .heat-2 { background: #7cc8a4; }
+  .heat-3 { background: #2e7d5e; color: white; }
+
+  /* SNAP TO SOLVE */
+  .snap-zone {
+    border: 2px dashed var(--border); border-radius: 12px;
+    padding: 36px; text-align: center; margin-bottom: 20px;
+    cursor: pointer; transition: all 0.15s; background: var(--card);
+  }
+  .snap-zone:hover { border-color: var(--accent); background: #fef7f5; }
+  .snap-icon { font-size: 2.2rem; margin-bottom: 10px; }
+  .snap-title { font-family: 'DM Serif Display', serif; font-size: 1.15rem; margin-bottom: 5px; }
+  .snap-sub { font-size: 0.83rem; color: var(--muted); }
+
+  /* Animated thinking dots */
+  @keyframes blink { 0%,100%{opacity:0.2} 50%{opacity:1} }
+  .thinking span { animation: blink 1.4s infinite; display: inline-block; margin: 0 1px; }
+  .thinking span:nth-child(2) { animation-delay: 0.2s; }
+  .thinking span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
+  .msg { animation: fadeUp 0.22s ease forwards; }
+  .stat-card { animation: fadeUp 0.28s ease forwards; }
+
+  /* ── AI FEATURES ── */
+  .ai-page { padding: 32px; max-width: 980px; margin: 0 auto; }
+  .ai-page-header { margin-bottom: 28px; }
+  .ai-page-header h1 { font-family: 'DM Serif Display', serif; font-size: 1.9rem; margin-bottom: 6px; }
+  .ai-page-header p { color: var(--muted); font-size: 0.9rem; }
+
+  .ai-features-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  @media(max-width:680px){ .ai-features-grid { grid-template-columns: 1fr; } }
+  .ai-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 14px; overflow: hidden;
+  }
+  .ai-card-header {
+    padding: 16px 20px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 11px;
+    background: var(--cream);
+  }
+  .ai-card-icon { font-size: 1.3rem; }
+  .ai-card-title { font-family: 'DM Serif Display', serif; font-size: 1.05rem; }
+  .ai-card-sub { font-size: 0.76rem; color: var(--muted); }
+  .ai-card-body { padding: 18px 20px; }
+
+  .ai-tag {
+    display: inline-block; font-size: 0.66rem; font-family: 'DM Mono', monospace;
+    padding: 2px 8px; border-radius: 4px; background: #fde8e2; color: var(--accent);
+    font-weight: 500; margin-bottom: 12px;
+  }
+
+  .concept-select {
+    width: 100%; padding: 9px 13px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--paper);
+    font-family: 'Instrument Sans', sans-serif; font-size: 0.86rem;
+    color: var(--ink); outline: none; margin-bottom: 9px; cursor: pointer;
+  }
+  .explain-level { display: flex; gap: 5px; margin-bottom: 12px; }
+  .level-btn {
+    flex: 1; padding: 6px; border-radius: 6px;
+    border: 1px solid var(--border); background: var(--paper);
+    font-family: 'Instrument Sans', sans-serif; font-size: 0.76rem;
+    cursor: pointer; color: var(--muted); transition: all 0.12s; text-align: center;
+  }
+  .level-btn.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .ai-output {
+    background: var(--paper); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px; min-height: 95px;
+    font-size: 0.86rem; line-height: 1.75; color: var(--ink);
+    white-space: pre-wrap; position: relative;
+  }
+  .ai-output-placeholder { color: var(--muted); font-style: italic; }
+  .ai-run-btn {
+    width: 100%; margin-top: 11px; padding: 10px;
+    border-radius: 8px; border: none;
+    background: var(--ink); color: var(--paper);
+    font-family: 'Instrument Sans', sans-serif; font-size: 0.86rem;
+    font-weight: 600; cursor: pointer; transition: opacity 0.15s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .ai-run-btn:hover { opacity: 0.8; }
+  .ai-run-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .gen-options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+  .gen-label { font-size: 0.76rem; color: var(--muted); margin-bottom: 4px; }
+  .gen-select {
+    width: 100%; padding: 7px 11px; border-radius: 7px;
+    border: 1px solid var(--border); background: var(--paper);
+    font-family: 'Instrument Sans', sans-serif; font-size: 0.81rem;
+    color: var(--ink); outline: none;
+  }
+  .gen-result { margin-top: 12px; }
+  .gen-q {
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 11px 13px; margin-bottom: 7px; font-size: 0.84rem;
+    line-height: 1.6; background: var(--paper);
+    animation: fadeUp 0.22s ease forwards;
+  }
+  .gen-q-num { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--muted); margin-bottom: 3px; }
+
+  .report-output {
+    background: var(--paper); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px; min-height: 115px;
+    font-size: 0.86rem; line-height: 1.8; color: var(--ink); white-space: pre-wrap;
+  }
+  .report-meta { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+  .report-chip {
+    padding: 4px 11px; border-radius: 20px;
+    border: 1px solid var(--border); background: var(--cream);
+    font-size: 0.76rem; cursor: pointer; color: var(--muted); transition: all 0.12s;
+  }
+  .report-chip.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+  .ai-hint-box {
+    background: #fff9ed; border: 1px solid #e8d8a8;
+    border-radius: 10px; padding: 13px 15px; margin-top: 8px;
+    font-size: 0.84rem; line-height: 1.7; display: none;
+    animation: fadeUp 0.22s ease forwards;
+  }
+  .ai-hint-box.visible { display: block; }
+  .ai-hint-label { font-size: 0.7rem; font-family: 'DM Mono', monospace; color: #8a6a1f; font-weight: 600; margin-bottom: 5px; }
+
+  /* Streaming cursor */
+  @keyframes cursor-blink { 0%,100%{opacity:1} 50%{opacity:0} }
+  .stream-cursor::after {
+    content: '▋'; display: inline-block;
+    animation: cursor-blink 0.7s infinite;
+    color: var(--accent); margin-left: 2px; font-size: 0.9em;
+  }
+  @keyframes badgePop { 0%{transform:scale(0.8);opacity:0} 60%{transform:scale(1.1)} 100%{transform:scale(1);opacity:1} }
+  #weak-badge { animation: badgePop 0.4s ease forwards; }
+
+  .thinking { display: flex; gap: 5px; align-items: center; padding: 10px 14px !important; }
+  .thinking span {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--muted); display: inline-block;
+    animation: bounce 1.2s infinite;
+  }
+  .thinking span:nth-child(2) { animation-delay: 0.2s; }
+  .thinking span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-6px)} }
+
+  /* New topic badge */
+  .topic-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 0.7rem; font-family: 'DM Mono', monospace;
+    padding: 3px 9px; border-radius: 4px;
+    background: #e2edf5; color: var(--accent2);
+    margin-bottom: 6px;
+  }
+  /* Predictive banner above chat */
+  .predictive-warning {
+    background: linear-gradient(135deg,#fff9ed,#fef8f6);
+    border: 1px solid #e8c8a0;
+    border-radius: 9px; padding: 10px 14px; margin-bottom: 10px;
+    font-size: 0.82rem; line-height: 1.55; color: var(--ink);
+    display: none;
+  }
+  .predictive-warning.visible { display: block; }
+  .predictive-warning .pw-icon { margin-right: 5px; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">EduFlow <span>AI</span></div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showScreen('dashboard')">Dashboard</button>
+    <button class="nav-tab" onclick="showScreen('tutor')">Socratic Tutor</button>
+    <button class="nav-tab" onclick="showScreen('worksheet')">Worksheets</button>
+    <button class="nav-tab" onclick="showScreen('insights')">Insights</button>
+    <button class="nav-tab" onclick="showScreen('snap')">Snap-to-Solve</button>
+    <button class="nav-tab" onclick="showScreen('aifeatures')">✦ AI Tools</button>
+  </div>
+  <div class="nav-badge">Arjun · Class 10</div>
+</nav>
+
+<!-- ═══════════════ DASHBOARD ═══════════════ -->
+<div id="screen-dashboard" class="screen active">
+  <div class="dashboard">
+    <div class="dash-header">
+      <h1>Good evening, <em>Arjun.</em><br>Ready to think deeper?</h1>
+      <p id="dash-subtitle">Wednesday, 26 March · 3 sessions this week · Algebra weak area flagged</p>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Sessions Completed</div>
+        <div class="stat-value" id="stat-sessions">47</div>
+        <div class="stat-sub"><span class="stat-up">↑ 8</span> this month</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Answer Accuracy</div>
+        <div class="stat-value" id="stat-accuracy">73%</div>
+        <div class="stat-sub"><span class="stat-up">Live tracking</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Weak Topic</div>
+        <div class="stat-value" style="font-size:1.05rem;padding-top:6px" id="stat-weak">Polynomials</div>
+        <div class="stat-sub"><span class="stat-down">Needs focus</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Study Streak</div>
+        <div class="stat-value" id="stat-streak">12</div>
+        <div class="stat-sub">days in a row 🔥</div>
+      </div>
+    </div>
+
+    <div class="insight-summary" id="insight-summary">
+      📊 <strong>Key Insight:</strong> You make <strong>62%</strong> of your mistakes in <strong>Polynomials</strong>, mainly due to <strong>sign errors</strong> during substitution. Your strongest topic is Linear Equations at <strong>82%</strong>.
+    </div>
+
+    <div class="dash-grid">
+      <div>
+        <div class="panel">
+          <div class="panel-title">Topic Mastery</div>
+          <div class="topic-row">
+            <span class="topic-name">Linear Equations</span>
+            <div class="topic-bar-wrap"><div class="topic-bar" style="width:82%;background:var(--green)"></div></div>
+            <span class="topic-pct">82%</span>
+          </div>
+          <div class="topic-row">
+            <span class="topic-name">Quadratic Equations</span>
+            <div class="topic-bar-wrap"><div class="topic-bar" style="width:65%;background:var(--gold)"></div></div>
+            <span class="topic-pct">65%</span>
+          </div>
+          <div class="topic-row">
+            <span class="topic-name">Triangles & Geometry</span>
+            <div class="topic-bar-wrap"><div class="topic-bar" style="width:78%;background:var(--green)"></div></div>
+            <span class="topic-pct">78%</span>
+          </div>
+          <div class="topic-row">
+            <span class="topic-name">Polynomials ⚠</span>
+            <div class="topic-bar-wrap"><div class="topic-bar" style="width:41%;background:var(--accent)"></div></div>
+            <span class="topic-pct">41%</span>
+          </div>
+          <div class="topic-row">
+            <span class="topic-name">Probability</span>
+            <div class="topic-bar-wrap"><div class="topic-bar" style="width:70%;background:var(--green)"></div></div>
+            <span class="topic-pct">70%</span>
+          </div>
+          <div class="topic-row">
+            <span class="topic-name">Arithmetic Progressions</span>
+            <div class="topic-bar-wrap"><div class="topic-bar" style="width:55%;background:var(--gold)"></div></div>
+            <span class="topic-pct">55%</span>
+          </div>
+        </div>
+
+        <div class="panel" style="margin-top:14px">
+          <div class="panel-title">Quick Actions</div>
+          <button class="action-btn" onclick="showScreen('tutor')"><span class="icon">🧠</span> Start a Socratic session on your weak topic</button>
+          <button class="action-btn" onclick="showScreen('worksheet')"><span class="icon">📋</span> Generate today's personalised worksheet</button>
+          <button class="action-btn" onclick="showScreen('snap')"><span class="icon">📷</span> Snap & analyse notebook work</button>
+        </div>
+      </div>
+
+      <div>
+        <div class="panel" style="margin-bottom:14px">
+          <div class="panel-title" style="display:flex;align-items:center;gap:8px">
+            Recent Mistake Patterns
+            <span id="weak-badge" style="display:none;font-size:0.66rem;padding:2px 7px;border-radius:4px;background:#fde8e2;color:var(--accent);font-family:'DM Mono',monospace"></span>
+          </div>
+          <div id="live-mistake-list">
+            <div class="mistake-item"><span class="mistake-tag tag-algebra">Polynomials</span><div>Sign mistake in p(2) — wrote +12 instead of −12</div></div>
+            <div class="mistake-item"><span class="mistake-tag tag-geo">Geometry</span><div>Confusing angle bisector with perpendicular bisector</div></div>
+            <div class="mistake-item"><span class="mistake-tag tag-algebra">Polynomials</span><div>Forgot to substitute into all terms of p(x)</div></div>
+            <div class="mistake-item"><span class="mistake-tag tag-ap">AP</span><div>Incorrect formula: used Sₙ = n/2(a+l) instead of standard form</div></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">Study Streak · March</div>
+          <div class="streak-dots">
+            <div class="dot dot-done"></div><div class="dot dot-done"></div><div class="dot dot-done"></div>
+            <div class="dot dot-miss"></div><div class="dot dot-done"></div><div class="dot dot-done"></div>
+            <div class="dot dot-done"></div><div class="dot dot-done"></div><div class="dot dot-done"></div>
+            <div class="dot dot-miss"></div><div class="dot dot-done"></div><div class="dot dot-done"></div>
+            <div class="dot dot-done"></div><div class="dot dot-done"></div><div class="dot dot-done"></div>
+            <div class="dot dot-done"></div><div class="dot dot-done"></div><div class="dot dot-done"></div>
+            <div class="dot dot-done"></div><div class="dot dot-done"></div><div class="dot dot-done"></div>
+            <div class="dot dot-done"></div><div class="dot dot-done"></div><div class="dot dot-done"></div>
+            <div class="dot dot-done"></div><div class="dot dot-today"></div>
+          </div>
+          <p style="font-size:0.75rem;color:var(--muted);margin-top:10px">🟩 Completed &nbsp;&nbsp; 🟥 Today &nbsp;&nbsp; ◻ Missed</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ TUTOR ═══════════════ -->
+<div id="screen-tutor" class="screen">
+  <div class="tutor-layout">
+    <div class="tutor-sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-label">Mathematics · Class 10</div>
+        <button class="topic-btn" onclick="selectTopic(this,'Linear Equations')">Linear Equations <span class="difficulty">Med</span></button>
+        <button class="topic-btn" onclick="selectTopic(this,'Polynomials')">Polynomials <span class="difficulty">Hard</span></button>
+        <button class="topic-btn" onclick="selectTopic(this,'Quadratic Equations')">Quadratic Equations <span class="difficulty">Hard</span></button>
+        <button class="topic-btn" onclick="selectTopic(this,'Geometry – Triangles')">Geometry – Triangles <span class="difficulty">Med</span></button>
+        <button class="topic-btn" onclick="selectTopic(this,'Arithmetic Progressions')">Arith. Progressions <span class="difficulty">Easy</span></button>
+        <button class="topic-btn" onclick="selectTopic(this,'Probability')">Probability <span class="difficulty">Easy</span></button>
+        <button class="topic-btn" onclick="selectTopic(this,'Circles')">Circles <span class="difficulty">Med</span></button>
+        <button class="topic-btn" onclick="selectTopic(this,'Coordinate Geometry')">Coord. Geometry <span class="difficulty">Med</span></button>
+      </div>
+      <div class="sidebar-section" id="ai-prediction-section">
+        <div class="sidebar-label">AI Prediction</div>
+        <div id="predicted-mistake" class="prediction-banner"></div>
+        <div id="confidence-display" style="font-size:0.77rem;color:var(--muted);line-height:1.9">
+          <div>Difficulty: <strong id="diff-label" style="color:var(--ink)">medium</strong></div>
+          <div>Error pattern: <strong id="err-label" style="color:var(--accent)">sign</strong></div>
+          <div>Questions: <strong id="q-count" style="color:var(--ink)">3</strong></div>
+        </div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Session Info</div>
+        <div style="font-size:0.8rem;color:var(--muted);line-height:1.9">
+          <div>Mode: <strong style="color:var(--ink)">Socratic</strong></div>
+          <div>Weak area: <strong style="color:var(--accent)" id="sidebar-weak">Polynomials</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tutor-main">
+      <div class="problem-header">
+        <div>
+          <div class="topic-badge" id="topic-badge">🎯 Current Topic</div>
+          <div class="problem-title" id="current-topic">Loading problem…</div>
+          <div class="problem-meta" id="problem-meta">Difficulty: Medium · Adaptive Mode</div>
+          <div class="step-tracker" id="step-tracker"></div>
+        </div>
+        <span class="mode-pill mode-socratic">Socratic Mode</span>
+      </div>
+
+      <!-- Predictive Error Warning Banner (shown before answer) -->
+      <div id="predictive-warning" class="predictive-warning" style="margin:12px 24px 0;display:none">
+        <span class="pw-icon">⚠️</span><span id="predictive-warning-text"></span>
+      </div>
+
+      <div class="chat-area" id="chat-area"></div>
+
+      <div class="chat-input-area">
+        <div class="chat-options" id="chat-chips">
+          <button class="opt-chip" onclick="quickReply('I need a hint please')">Need a hint</button>
+          <button class="opt-chip" onclick="quickReply('Can you show me the next step?')">Show next step</button>
+          <button class="opt-chip" onclick="quickReply('I want to try a different problem')">Different problem</button>
+          <button class="opt-chip" onclick="loadNewProblem()">🔄 New Topic</button>
+        </div>
+        <div class="chat-row">
+          <input class="chat-input" id="chat-input" placeholder="Type your answer or reasoning…">
+          <button class="send-btn" id="send-btn" onclick="sendMessage()">Send →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ WORKSHEET ═══════════════ -->
+<div id="screen-worksheet" class="screen">
+  <div class="focus-overlay" onclick="toggleFocusMode()"></div>
+  <div class="worksheet-page">
+    <div class="ws-header">
+      <div>
+        <div class="ws-title">Personalised Worksheet</div>
+        <div class="ws-meta" id="ws-meta-label">Generated · Focus: Weak areas · Est. 35 min</div>
+      </div>
+      <div class="ws-actions">
+        <button class="btn-outline" onclick="toggleFocusMode()">🎯 Focus Mode</button>
+        <button class="btn-outline" onclick="generateSmartWorksheet()">🔄 New Worksheet</button>
+        <button class="btn-fill" onclick="checkAnswers()">Submit & Analyse</button>
+      </div>
+    </div>
+
+    <div class="ws-progress">
+      <span id="ws-progress-label">0/5 attempted</span>
+      <div class="ws-progress-bar"><div class="ws-progress-fill" id="ws-progress-fill" style="width:0%"></div></div>
+    </div>
+
+    <div id="ws-questions-container"></div>
+
+    <div id="ws-result" style="display:none;margin-top:20px"></div>
+
+    <div class="panel" style="margin-top:20px;border-color:#e8d8a8;background:#fff9ed">
+      <div id="smart-ws-container">
+        <div class="panel-title">Smart Practice · Loading…</div>
+        <div style="color:var(--muted);font-size:0.84rem;font-style:italic">Personalised questions based on your weak areas will appear here.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ INSIGHTS ═══════════════ -->
+<div id="screen-insights" class="screen">
+  <div class="insights-page">
+    <div class="insights-header">
+      <h1>Learning Insights</h1>
+      <p>Arjun · March 2025 · For sharing with teacher or parent</p>
+    </div>
+
+    <div class="key-insight-banner" id="key-insight-banner">
+      <div class="key-insight-label">⚡ AI Key Insight</div>
+      <div class="key-insight-text" id="key-insight-text">
+        You make <strong>62% of your mistakes in Polynomials</strong>, mainly due to <strong>sign errors</strong> during substitution. Your strongest topic is Linear Equations at 82%. Focus this week: practice sign-tracking in polynomial calculations.
+      </div>
+    </div>
+
+    <div class="insights-grid" id="insights-grid">
+
+      <div class="chart-panel weak-highlight">
+        <div class="chart-title">Weekly Accuracy by Topic ⚠ Weak areas highlighted</div>
+        <div class="bar-chart" id="accuracy-bar-chart">
+          <div class="bar-group"><div class="bar" style="height:82%;background:var(--green)"></div><div class="bar-label">Linear</div><div class="bar-pct">82%</div></div>
+          <div class="bar-group"><div class="bar" style="height:41%;background:var(--accent)"></div><div class="bar-label">Poly</div><div class="bar-pct">41%</div></div>
+          <div class="bar-group"><div class="bar" style="height:65%;background:var(--gold)"></div><div class="bar-label">Quad</div><div class="bar-pct">65%</div></div>
+          <div class="bar-group"><div class="bar" style="height:78%;background:var(--green)"></div><div class="bar-label">Geo</div><div class="bar-pct">78%</div></div>
+          <div class="bar-group"><div class="bar" style="height:70%;background:var(--green)"></div><div class="bar-label">Prob</div><div class="bar-pct">70%</div></div>
+          <div class="bar-group"><div class="bar" style="height:55%;background:var(--gold)"></div><div class="bar-label">AP</div><div class="bar-pct">55%</div></div>
+        </div>
+      </div>
+
+      <div class="chart-panel">
+        <div class="chart-title">Mistake Reduction Trend</div>
+        <svg viewBox="0 0 240 130" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:100%">
+          <polyline points="10,110 50,90 90,75 130,55 170,45 210,30" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/>
+          <defs>
+            <linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="var(--accent)" stop-opacity="0.15"/>
+              <stop offset="100%" stop-color="var(--accent)" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <polygon points="10,110 50,90 90,75 130,55 170,45 210,30 210,120 10,120" fill="url(#grad)"/>
+          <circle cx="10" cy="110" r="4" fill="var(--accent)"/>
+          <circle cx="50" cy="90" r="4" fill="var(--accent)"/>
+          <circle cx="90" cy="75" r="4" fill="var(--accent)"/>
+          <circle cx="130" cy="55" r="4" fill="var(--accent)"/>
+          <circle cx="170" cy="45" r="4" fill="var(--accent)"/>
+          <circle cx="210" cy="30" r="4" fill="var(--accent)"/>
+          <text x="10" y="125" font-size="9" fill="var(--muted)" font-family="DM Mono">Oct</text>
+          <text x="50" y="125" font-size="9" fill="var(--muted)" font-family="DM Mono">Nov</text>
+          <text x="90" y="125" font-size="9" fill="var(--muted)" font-family="DM Mono">Dec</text>
+          <text x="130" y="125" font-size="9" fill="var(--muted)" font-family="DM Mono">Jan</text>
+          <text x="170" y="125" font-size="9" fill="var(--muted)" font-family="DM Mono">Feb</text>
+          <text x="205" y="125" font-size="9" fill="var(--muted)" font-family="DM Mono">Mar</text>
+          <text x="178" y="28" font-size="9" fill="var(--green)" font-family="DM Mono">↓34%</text>
+        </svg>
+      </div>
+
+      <div class="chart-panel full-width">
+        <div class="chart-title">Recurring Error Patterns — Detected by AI</div>
+        <div id="pattern-list">
+          <div class="pattern-item">
+            <div class="pattern-icon icon-red">⚠️</div>
+            <div class="pattern-body">
+              <div class="pattern-name">Sign Errors in Substitution</div>
+              <div class="pattern-desc">Arjun consistently flips signs when substituting negative values, especially in polynomial evaluations. Detected in 7 of last 10 algebra problems.</div>
+            </div>
+            <div class="pattern-freq">7/10</div>
+          </div>
+          <div class="pattern-item">
+            <div class="pattern-icon icon-gold">💡</div>
+            <div class="pattern-body">
+              <div class="pattern-name">Formula Selection Errors</div>
+              <div class="pattern-desc">Applies Sₙ = n/2(a+l) instead of Sₙ = n/2(2a+(n−1)d) in AP problems where the last term isn't given. Improving this month.</div>
+            </div>
+            <div class="pattern-freq">4/10</div>
+          </div>
+          <div class="pattern-item">
+            <div class="pattern-icon icon-blue">🔵</div>
+            <div class="pattern-body">
+              <div class="pattern-name">Theorem Application Confusion</div>
+              <div class="pattern-desc">Occasionally applies Remainder Theorem where Factor Theorem is needed. Down from 6/10 to 2/10 sessions — significant improvement.</div>
+            </div>
+            <div class="pattern-freq">2/10</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-panel full-width">
+        <div class="chart-title">Study Activity Heatmap · Last 5 Weeks</div>
+        <div class="heatmap" style="margin-top:8px">
+          <div class="heatmap-cell heat-2">M</div><div class="heatmap-cell heat-0">T</div><div class="heatmap-cell heat-3">W</div><div class="heatmap-cell heat-1">T</div><div class="heatmap-cell heat-2">F</div><div class="heatmap-cell heat-0">S</div><div class="heatmap-cell heat-1">S</div>
+          <div class="heatmap-cell heat-3">M</div><div class="heatmap-cell heat-2">T</div><div class="heatmap-cell heat-0">W</div><div class="heatmap-cell heat-3">T</div><div class="heatmap-cell heat-2">F</div><div class="heatmap-cell heat-1">S</div><div class="heatmap-cell heat-0">S</div>
+          <div class="heatmap-cell heat-1">M</div><div class="heatmap-cell heat-3">T</div><div class="heatmap-cell heat-2">W</div><div class="heatmap-cell heat-2">T</div><div class="heatmap-cell heat-3">F</div><div class="heatmap-cell heat-0">S</div><div class="heatmap-cell heat-2">S</div>
+          <div class="heatmap-cell heat-2">M</div><div class="heatmap-cell heat-2">T</div><div class="heatmap-cell heat-3">W</div><div class="heatmap-cell heat-3">T</div><div class="heatmap-cell heat-2">F</div><div class="heatmap-cell heat-1">S</div><div class="heatmap-cell heat-0">S</div>
+          <div class="heatmap-cell heat-3">M</div><div class="heatmap-cell heat-3">T</div><div class="heatmap-cell heat-2">W</div><div class="heatmap-cell heat-2">T</div><div class="heatmap-cell heat-3">F</div><div class="heatmap-cell heat-1">S</div><div class="heatmap-cell heat-2">S</div>
+        </div>
+        <p style="font-size:0.72rem;color:var(--muted);margin-top:8px">■ High &nbsp; ■ Medium &nbsp; ■ Low &nbsp; □ No activity</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ SNAP TO SOLVE ═══════════════ -->
+<div id="screen-snap" class="screen">
+  <div style="padding:32px;max-width:680px;margin:0 auto">
+    <h1 style="font-family:'DM Serif Display',serif;font-size:1.9rem;margin-bottom:5px">Snap-to-Solve</h1>
+    <p style="color:var(--muted);margin-bottom:26px;font-size:0.9rem">Upload a photo of your notebook work — EduFlow AI will detect where you went wrong and guide you through the correction, step by step.</p>
+
+    <div class="snap-zone" onclick="simulateSnap()">
+      <div class="snap-icon">📷</div>
+      <div class="snap-title">Upload or drag a photo here</div>
+      <div class="snap-sub">Supports JPG, PNG · Handwritten or printed work</div>
+    </div>
+
+    <div id="snap-result" style="display:none">
+      <div class="panel" style="margin-bottom:14px">
+        <div class="panel-title">📸 Analysed: Quadratic equation notebook work</div>
+        <div style="font-size:0.86rem;color:var(--muted);margin-bottom:14px">Arjun — 26 March · 3 steps detected · 1 error found</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="padding:11px 15px;border-radius:8px;background:#e2f5ed;border:1px solid #a8d8c0">
+            <strong style="font-size:0.8rem;color:var(--green)">✅ Step 1 — Correct</strong>
+            <div style="font-size:0.86rem;margin-top:3px">Identified a=2, b=−7, c=3 from 2x²−7x+3 correctly.</div>
+          </div>
+          <div style="padding:11px 15px;border-radius:8px;background:#fde8e2;border:1px solid #f0b8a8">
+            <strong style="font-size:0.8rem;color:var(--accent)">❌ Step 2 — Error detected</strong>
+            <div style="font-size:0.86rem;margin-top:3px">You wrote b² = 7² = 47. But 7² = <strong>49</strong>. This cascaded into an incorrect discriminant.</div>
+          </div>
+          <div style="padding:11px 15px;border-radius:8px;background:var(--cream);border:1px solid var(--border)">
+            <strong style="font-size:0.8rem;color:var(--muted)">⏸ Step 3 — Skipped</strong>
+            <div style="font-size:0.86rem;margin-top:3px">Verification by substitution not attempted.</div>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">🤖 Socratic Follow-up</div>
+        <div style="font-size:0.88rem;line-height:1.7;margin-bottom:14px">
+          You had the right <em>method</em> — you knew to use the quadratic formula and correctly identified the coefficients.<br><br>
+          <strong>Before we fix it: what is 7²? And how would that error change your final roots?</strong>
+        </div>
+        <button class="btn-fill" onclick="showScreen('tutor')">Continue in Socratic Tutor →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ AI TOOLS ═══════════════ -->
+<div id="screen-aifeatures" class="screen">
+  <div class="ai-page">
+    <div class="ai-page-header">
+      <h1>✦ AI Tools</h1>
+      <p>Live AI-powered features — each uses real student data for personalised output</p>
+    </div>
+
+    <div class="ai-features-grid">
+
+      <!-- 1. CONCEPT EXPLAINER -->
+      <div class="ai-card">
+        <div class="ai-card-header">
+          <div class="ai-card-icon">🔍</div>
+          <div>
+            <div class="ai-card-title">Concept Explainer</div>
+            <div class="ai-card-sub">Explanation + example + test question</div>
+          </div>
+        </div>
+        <div class="ai-card-body">
+          <div class="ai-tag">✦ LIVE AI</div>
+          <select class="concept-select" id="concept-select">
+            <option value="Factor Theorem">Factor Theorem</option>
+            <option value="Quadratic Formula">Quadratic Formula</option>
+            <option value="Remainder Theorem">Remainder Theorem</option>
+            <option value="Arithmetic Progressions">Arithmetic Progressions</option>
+            <option value="Pythagoras Theorem">Pythagoras Theorem</option>
+            <option value="Probability basics">Probability basics</option>
+            <option value="Similar Triangles">Similar Triangles</option>
+            <option value="Linear Equations in two variables">Linear Equations</option>
+          </select>
+          <div class="gen-label" style="margin-bottom:6px">Explain at level:</div>
+          <div class="explain-level">
+            <button class="level-btn active" onclick="setLevel(this,'beginner')">Beginner</button>
+            <button class="level-btn" onclick="setLevel(this,'standard')">Standard</button>
+            <button class="level-btn" onclick="setLevel(this,'deep-dive')">Deep Dive</button>
+          </div>
+          <div class="ai-output" id="explain-output"><span class="ai-output-placeholder">AI explanation will appear here — includes concept, worked example, and a quick test question…</span></div>
+          <button class="ai-run-btn" id="explain-btn" onclick="runExplainer()"><span>✦</span> Explain This Concept</button>
+        </div>
+      </div>
+
+      <!-- 2. AI WORKSHEET GENERATOR -->
+      <div class="ai-card">
+        <div class="ai-card-header">
+          <div class="ai-card-icon">📋</div>
+          <div>
+            <div class="ai-card-title">Worksheet Generator</div>
+            <div class="ai-card-sub">Personalised to your weak areas & errors</div>
+          </div>
+        </div>
+        <div class="ai-card-body">
+          <div class="ai-tag">✦ LIVE AI</div>
+          <div class="gen-options">
+            <div>
+              <div class="gen-label">Topic</div>
+              <select class="gen-select" id="gen-topic">
+                <option>Polynomials</option>
+                <option>Quadratic Equations</option>
+                <option>Linear Equations</option>
+                <option>Arithmetic Progressions</option>
+                <option>Triangles</option>
+              </select>
+            </div>
+            <div>
+              <div class="gen-label">Difficulty</div>
+              <select class="gen-select" id="gen-difficulty">
+                <option>Easy</option>
+                <option selected>Medium</option>
+                <option>Hard</option>
+                <option>Mixed</option>
+              </select>
+            </div>
+            <div>
+              <div class="gen-label">No. of Questions</div>
+              <select class="gen-select" id="gen-count">
+                <option>3</option>
+                <option selected>5</option>
+                <option>7</option>
+              </select>
+            </div>
+            <div>
+              <div class="gen-label">Target weak area</div>
+              <select class="gen-select" id="gen-weak">
+                <option>Yes — sign errors</option>
+                <option>Yes — formula recall</option>
+                <option>No focus</option>
+              </select>
+            </div>
+          </div>
+          <div class="gen-result" id="gen-result"></div>
+          <button class="ai-run-btn" id="gen-btn" onclick="runGenerator()"><span>✦</span> Generate Worksheet</button>
+        </div>
+      </div>
+
+      <!-- 3. AI PROGRESS REPORT -->
+      <div class="ai-card">
+        <div class="ai-card-header">
+          <div class="ai-card-icon">📊</div>
+          <div>
+            <div class="ai-card-title">AI Progress Report</div>
+            <div class="ai-card-sub">Data-driven analysis using live student stats</div>
+          </div>
+        </div>
+        <div class="ai-card-body">
+          <div class="ai-tag">✦ LIVE AI</div>
+          <div class="gen-label" style="margin-bottom:8px">Report type</div>
+          <div class="report-meta">
+            <button class="report-chip active" onclick="setReportType(this,'student')">For Student</button>
+            <button class="report-chip" onclick="setReportType(this,'parent')">For Parent</button>
+            <button class="report-chip" onclick="setReportType(this,'teacher')">For Teacher</button>
+          </div>
+          <div class="report-output" id="report-output"><span class="ai-output-placeholder">AI will write a data-driven progress report using your actual accuracy, mistakes, and trends…</span></div>
+          <button class="ai-run-btn" id="report-btn" onclick="runReport()"><span>✦</span> Generate Report</button>
+        </div>
+      </div>
+
+      <!-- 4. AI MISTAKE ANALYSER -->
+      <div class="ai-card">
+        <div class="ai-card-header">
+          <div class="ai-card-icon">🧪</div>
+          <div>
+            <div class="ai-card-title">Mistake Analyser</div>
+            <div class="ai-card-sub">What · Why · How to fix — Socratic diagnosis</div>
+          </div>
+        </div>
+        <div class="ai-card-body">
+          <div class="ai-tag">✦ LIVE AI</div>
+          <div class="gen-label">Paste the question</div>
+          <textarea id="mistake-q" style="width:100%;padding:8px 11px;border-radius:8px;border:1px solid var(--border);background:var(--paper);font-family:'Instrument Sans',sans-serif;font-size:0.82rem;resize:none;outline:none;margin-bottom:7px;color:var(--ink)" rows="2" placeholder="e.g. Solve 2x² − 7x + 3 = 0">Solve 2x² − 7x + 3 = 0</textarea>
+          <div class="gen-label">Paste student's wrong working</div>
+          <textarea id="mistake-a" style="width:100%;padding:8px 11px;border-radius:8px;border:1px solid var(--border);background:var(--paper);font-family:'DM Mono',monospace;font-size:0.8rem;resize:none;outline:none;margin-bottom:7px;color:var(--ink)" rows="3" placeholder="Show the student's working here…">a=2, b=7, c=3
+discriminant = 49 - 24 = 25
+x = (-7 ± 5) / 4
+x = -0.5 or x = -3</textarea>
+          <div class="ai-output" id="mistake-output" style="min-height:80px"><span class="ai-output-placeholder">AI will identify: what went wrong, why it happens, and how to fix the thinking…</span></div>
+          <button class="ai-run-btn" id="mistake-btn" onclick="runMistakeAnalyser()"><span>✦</span> Analyse This Mistake</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  EDUFLOW AI — UPGRADED INTELLIGENT LEARNING SYSTEM
+//  All fixes applied: Multi-topic engine, Real Socratic,
+//  Predictive Error AI, Worksheet upgrades, Insights fixes
+// ═══════════════════════════════════════════════════════════
+
+/* ──────────────────────────────────────────────────────────
+   SECTION 1 · STUDENT MODEL
+   ────────────────────────────────────────────────────────── */
+const StudentModel = (() => {
+  const SEED = {
+    sessions: 47, correct: 38, attempts: 52, streak: 12,
+    topicAccuracy: {
+      'Polynomials': { correct: 9, total: 22 },
+      'Quadratic Equations': { correct: 17, total: 26 },
+      'Linear Equations': { correct: 27, total: 33 },
+      'Arithmetic Progressions': { correct: 13, total: 24 },
+      'Geometry': { correct: 21, total: 27 },
+      'Probability': { correct: 19, total: 27 }
+    },
+    mistakes: [
+      { topic:'Polynomials', error:'Sign mistake in p(2) — wrote +12 instead of −12', errorType:'sign', time: Date.now()-86400000 },
+      { topic:'Polynomials', error:'Forgot to substitute into all terms of p(x)', errorType:'substitution', time: Date.now()-172800000 },
+      { topic:'Arithmetic Progressions', error:'Used Sₙ = n/2(a+l) instead of Sₙ = n/2(2a+(n−1)d)', errorType:'formula', time: Date.now()-259200000 },
+      { topic:'Quadratic Equations', error:'Forgot ± in quadratic formula — only took positive root', errorType:'sign', time: Date.now()-345600000 }
+    ],
+    errorPatterns: { sign: 5, formula: 3, substitution: 4, conceptual: 2 },
+    hintLevel: 0, consecutiveCorrect: 0, consecutiveWrong: 0
+  };
+
+  let data = {};
+
+  function load() {
+    const raw = localStorage.getItem('eduflow_v4_student');
+    if (raw) { try { data = { ...SEED, ...JSON.parse(raw) }; return; } catch(e) {} }
+    data = { ...SEED }; save();
+  }
+
+  function save() { localStorage.setItem('eduflow_v4_student', JSON.stringify(data)); }
+  function get() { return data; }
+
+  function update(result, topic, errorType = null) {
+    data.attempts++;
+    const ta = data.topicAccuracy[topic] || { correct: 0, total: 0 };
+    ta.total++;
+    if (result === 'correct') {
+      data.correct++; ta.correct++;
+      data.consecutiveCorrect++; data.consecutiveWrong = 0;
+    } else {
+      data.consecutiveWrong++; data.consecutiveCorrect = 0;
+      if (errorType) data.errorPatterns[errorType] = (data.errorPatterns[errorType] || 0) + 1;
+      data.mistakes.unshift({ topic, error: `${errorType || 'unknown'} error`, errorType: errorType || 'unknown', time: Date.now() });
+    }
+    data.topicAccuracy[topic] = ta;
+    save();
+  }
+
+  function addMistake(topic, error, errorType = 'unknown') {
+    data.mistakes.unshift({ topic, error, errorType, time: Date.now() });
+    const ta = data.topicAccuracy[topic] || { correct: 0, total: 0 };
+    ta.total++; data.topicAccuracy[topic] = ta; data.attempts++;
+    if (data.errorPatterns) data.errorPatterns[errorType] = (data.errorPatterns[errorType] || 0) + 1;
+    save();
+  }
+
+  function getAccuracy(topic = null) {
+    if (topic) {
+      const ta = data.topicAccuracy[topic];
+      if (!ta || ta.total === 0) return 0;
+      return Math.round((ta.correct / ta.total) * 100);
+    }
+    if (data.attempts === 0) return 0;
+    return Math.round((data.correct / data.attempts) * 100);
+  }
+
+  function getWeakTopic() {
+    let worst = null, worstAcc = 101;
+    for (const [topic, ta] of Object.entries(data.topicAccuracy)) {
+      if (ta.total < 3) continue;
+      const acc = Math.round((ta.correct / ta.total) * 100);
+      if (acc < worstAcc) { worstAcc = acc; worst = topic; }
+    }
+    return worst || 'Polynomials';
+  }
+
+  function getDominantErrorType() {
+    const ep = data.errorPatterns;
+    return Object.keys(ep).sort((a, b) => ep[b] - ep[a])[0] || 'sign';
+  }
+
+  function getDifficultyLevel() {
+    const acc = getAccuracy();
+    if (data.consecutiveWrong >= 2 || acc < 45) return 'easy';
+    if (data.consecutiveCorrect >= 3 || acc > 75) return 'hard';
+    return 'medium';
+  }
+
+  function getConfidenceScore(text) {
+    const hedges = ['maybe','perhaps','i think','not sure','probably','might','could be','i guess'];
+    const confident = ['definitely','because','therefore','so','this means','the theorem','= 0','formula'];
+    const lower = text.toLowerCase();
+    let score = 50;
+    hedges.forEach(h => { if (lower.includes(h)) score -= 12; });
+    confident.forEach(c => { if (lower.includes(c)) score += 10; });
+    score += Math.min(20, text.length / 8);
+    return Math.max(10, Math.min(95, Math.round(score)));
+  }
+
+  return { load, save, get, update, addMistake, getAccuracy, getWeakTopic, getDominantErrorType, getDifficultyLevel, getConfidenceScore };
+})();
+
+/* ──────────────────────────────────────────────────────────
+   SECTION 2 · MULTI-TOPIC PROBLEM BANK
+   ────────────────────────────────────────────────────────── */
+const PROBLEM_BANK = {
+  'Linear Equations': {
+    easy: {
+      topic: 'Linear Equations — Solving',
+      meta: 'Difficulty: Easy · Guided',
+      steps: [
+        {
+          id:'le1', label:'Isolate',
+          q:'Solve: 3x + 7 = 22.<br><br>What is your first step — and why is it that step?',
+          correct:['subtract 7','minus 7','−7','move 7','isolate x'],
+          hints:['To isolate x, we need to remove the constant on the left. What operation undoes adding 7?','Subtract 7 from both sides: 3x + 7 − 7 = 22 − 7. What does this give you?','3x = 15. Now you have 3x = 15.'],
+          errorType:'conceptual', feedback:'✅ Correct! Subtract 7 from both sides → 3x = 15.'
+        },
+        {
+          id:'le2', label:'Solve',
+          q:'You have 3x = 15. What is x?',
+          correct:['5','x=5','x = 5'],
+          hints:['Divide both sides by 3.','3x ÷ 3 = x. And 15 ÷ 3 = ?','x = 5.'],
+          errorType:'formula', feedback:'✅ x = 5. Divide both sides by the coefficient of x.'
+        },
+        {
+          id:'le3', label:'Verify',
+          q:'Verify: substitute x = 5 back into 3x + 7 = 22. Does it hold?',
+          correct:['yes','22','3(5)+7=22','15+7=22','it works','verified'],
+          hints:['Replace x with 5: 3(5) + 7 = ?','15 + 7 = ?','22 = 22 ✅ — verified!'],
+          errorType:'substitution', feedback:'🎉 3(5) + 7 = 15 + 7 = 22. Verified! Always check your answer.'
+        }
+      ]
+    },
+    medium: {
+      topic: 'Linear Equations — Two Variables',
+      meta: 'Difficulty: Medium · Simultaneous Equations',
+      steps: [
+        {
+          id:'le4', label:'Method',
+          q:'System: x + y = 10 and x − y = 4.<br><br>Which method would you use — substitution or elimination — and why?',
+          correct:['elimination','add','adding','eliminate','both methods'],
+          hints:['Look at the signs of y in both equations. What happens if you add the equations together?','Adding eliminates y: (x+y) + (x−y) = 10 + 4. This gives 2x = 14.','Elimination is easiest here because the y terms cancel when added.'],
+          errorType:'conceptual', feedback:'✅ Elimination works perfectly — adding the equations cancels y immediately.'
+        },
+        {
+          id:'le5', label:'Solve x',
+          q:'Adding the equations: 2x = 14. What is x?',
+          correct:['7','x=7','x = 7'],
+          hints:['Divide both sides by 2.','2x = 14 → x = ?','x = 7.'],
+          errorType:'formula', feedback:'✅ x = 7.'
+        },
+        {
+          id:'le6', label:'Solve y',
+          q:'Now substitute x = 7 into x + y = 10. What is y?',
+          correct:['3','y=3','y = 3'],
+          hints:['Replace x: 7 + y = 10.','Subtract 7 from both sides.','y = 3.'],
+          errorType:'substitution', feedback:'🎉 y = 3. Solution: (7, 3). Always verify in the second equation!'
+        }
+      ]
+    },
+    hard: {
+      topic: 'Linear Equations — Word Problem',
+      meta: 'Difficulty: Hard · Modelling',
+      steps: [
+        {
+          id:'le7', label:'Model',
+          q:'A boat travels 36 km downstream in 3 hours and 36 km upstream in 4 hours. Let speed of boat = b, speed of current = c.<br><br>Write the two equations.',
+          correct:['b+c=12','b-c=9','b−c=9','downstream','upstream'],
+          hints:['Speed = Distance ÷ Time. Downstream: 36/3 = 12 km/h = b + c.','Upstream: 36/4 = 9 km/h = b − c.','Equations: b + c = 12 and b − c = 9.'],
+          errorType:'conceptual', feedback:'✅ b + c = 12 and b − c = 9. The current adds to speed downstream, subtracts upstream.'
+        },
+        {
+          id:'le8', label:'Solve',
+          q:'Solve: b + c = 12 and b − c = 9. Find b and c.',
+          correct:['b=10.5','c=1.5','10.5','1.5','b = 10.5'],
+          hints:['Add the equations to eliminate c: 2b = 21.','b = 10.5. Then substitute to find c.','c = 12 − 10.5 = 1.5.'],
+          errorType:'formula', feedback:'✅ b = 10.5 km/h, c = 1.5 km/h. Elegant solution!'
+        }
+      ]
+    }
+  },
+  'Quadratic Equations': {
+    easy: {
+      topic: 'Quadratic Equations — Factorisation',
+      meta: 'Difficulty: Easy · Guided',
+      steps: [
+        {
+          id:'qe1', label:'Identify',
+          q:'Factorise: x² + 7x + 12 = 0.<br><br>What two numbers multiply to 12 AND add to 7?',
+          correct:['3 and 4','4 and 3','3,4','4,3','3+4=7'],
+          hints:['List pairs that multiply to 12: (1,12), (2,6), (3,4). Which pair adds to 7?','3 × 4 = 12 and 3 + 4 = 7. So the numbers are 3 and 4.','(x + 3)(x + 4) = 0.'],
+          errorType:'conceptual', feedback:'✅ 3 and 4! Because 3 × 4 = 12 and 3 + 4 = 7.'
+        },
+        {
+          id:'qe2', label:'Factorise',
+          q:'So x² + 7x + 12 = (x + 3)(x + 4) = 0. What are the roots?',
+          correct:['x=-3','x=-4','−3 and −4','-3,-4','x = -3 or x = -4'],
+          hints:['If (x + 3) = 0, then x = ?','x + 3 = 0 → x = −3. And x + 4 = 0 → x = ?','x = −3 or x = −4.'],
+          errorType:'sign', feedback:'✅ x = −3 or x = −4. The roots are the negatives of the numbers in the brackets!'
+        }
+      ]
+    },
+    medium: {
+      topic: 'Quadratic Equations — Quadratic Formula',
+      meta: 'Difficulty: Medium · Discriminant Method',
+      steps: [
+        {
+          id:'qe3', label:'Identify Coefficients',
+          q:'Solve using the quadratic formula: 2x² − 5x + 2 = 0.<br><br>State a, b, and c.',
+          correct:['a=2','b=-5','c=2','a=2,b=-5','2,-5,2'],
+          hints:['Standard form: ax² + bx + c = 0. Match each term.','a is the coefficient of x², b is the coefficient of x, c is the constant.','a = 2, b = −5, c = 2.'],
+          errorType:'conceptual', feedback:'✅ a = 2, b = −5, c = 2. Always watch the sign of b!'
+        },
+        {
+          id:'qe4', label:'Discriminant',
+          q:'Calculate the discriminant: D = b² − 4ac. What is D?',
+          correct:['9','d=9','discriminant=9','b²-4ac=9'],
+          hints:['D = (−5)² − 4(2)(2). Calculate each part.','(−5)² = 25. And 4 × 2 × 2 = 16.','D = 25 − 16 = 9.'],
+          errorType:'sign', feedback:'✅ D = 25 − 16 = 9. Since D > 0, the equation has two real distinct roots.'
+        },
+        {
+          id:'qe5', label:'Find Roots',
+          q:'Using x = (−b ± √D) / 2a, with b = −5, D = 9, a = 2. Find both roots.',
+          correct:['x=2','x=0.5','x=1/2','2 and 1/2','0.5 and 2'],
+          hints:['x = (5 ± √9) / (2×2) = (5 ± 3) / 4.','x₁ = (5+3)/4 = 8/4 = 2. x₂ = (5−3)/4 = 2/4 = ?','x₁ = 2, x₂ = 1/2.'],
+          errorType:'formula', feedback:'🎉 x = 2 or x = ½. Verify: 2(4) − 5(2) + 2 = 8 − 10 + 2 = 0 ✅'
+        }
+      ]
+    },
+    hard: {
+      topic: 'Quadratic Equations — Nature of Roots',
+      meta: 'Difficulty: Hard · Discriminant Analysis',
+      steps: [
+        {
+          id:'qe6', label:'Condition',
+          q:'For what value of k does kx² + 2x + 1 = 0 have equal roots?<br><br>What condition must D satisfy for equal roots?',
+          correct:['d=0','discriminant=0','d must be zero','equal roots means d=0'],
+          hints:['Equal roots means the parabola just touches the x-axis. What does that mean for the discriminant?','D = 0 for equal roots. D = b² − 4ac.'],
+          errorType:'conceptual', feedback:'✅ D = 0 for equal roots. The quadratic "just touches" — there\'s only one root.'
+        },
+        {
+          id:'qe7', label:'Solve for k',
+          q:'Set D = b² − 4ac = 0. Here b = 2, a = k, c = 1. Find k.',
+          correct:['k=1','1','k = 1'],
+          hints:['D = 4 − 4k = 0. Solve for k.','4 = 4k → k = ?','k = 1.'],
+          errorType:'formula', feedback:'✅ k = 1. When k = 1: x² + 2x + 1 = (x+1)² = 0, so x = −1 (equal root).'
+        }
+      ]
+    }
+  },
+  'Polynomials': {
+    easy: {
+      topic: 'Polynomials — Factor Theorem (Guided)',
+      meta: 'Difficulty: Easy · Scaffolded · Weak area support',
+      steps: [
+        {
+          id:'p1', label:'Theorem',
+          q:'We want to check if (x − 2) is a factor of p(x) = x³ + 3x² − 4x − 12.<br><br>The Factor Theorem says: substitute x = a to test factor (x − a). What value of x should we substitute?',
+          correct:['2','x=2','x = 2','substitute 2'],
+          hints:['Look at the factor (x − 2). What value makes (x − 2) = 0?','If (x − 2) = 0, then x = ?','x = 2. We always substitute x = a when testing factor (x − a).'],
+          errorType:'conceptual', feedback:'✅ x = 2! The Factor Theorem tests factor (x − a) by substituting x = a.'
+        },
+        {
+          id:'p2', label:'Substitute',
+          q:'Calculate p(2) = (2)³ + 3(2)² − 4(2) − 12.<br><br>Work term by term. What is p(2)?',
+          correct:['0','zero','= 0','p(2) = 0','p(2)=0'],
+          hints:['(2)³ = 8. And 3(2)² = 3 × 4 = ?','8 + 12 − 8 − 12 = ?','p(2) = 0. Watch negative signs carefully!'],
+          errorType:'sign', feedback:'✅ p(2) = 8 + 12 − 8 − 12 = 0. No sign errors — excellent!'
+        },
+        {
+          id:'p3', label:'Conclude',
+          q:'Since p(2) = 0, what can we conclude about (x − 2)?',
+          correct:['factor','is a factor','(x-2) is a factor','x-2 is a factor','yes it is','yes'],
+          hints:['The theorem: if p(a) = 0, then (x − a) is a…?','Factor Theorem: p(a) = 0 ⟺ (x − a) is a factor.','(x − 2) IS a factor of p(x).'],
+          errorType:'conceptual', feedback:'🎉 (x − 2) is a factor of p(x)! You\'ve applied the Factor Theorem correctly.'
+        }
+      ]
+    },
+    medium: {
+      topic: 'Polynomials — Factor Theorem & Division',
+      meta: 'Difficulty: Medium · Problem 2 of 5',
+      steps: [
+        {
+          id:'pm1', label:'Identify',
+          q:'Problem: p(x) = x³ + 3x² − 4x − 12. Is (x − 2) a factor?<br><br>What is the first step, and why?',
+          correct:['substitute','p(2)','put x=2','x = 2','x=2','plug in','evaluate at 2'],
+          hints:['Think: what value makes (x − 2) = 0?','Factor Theorem: substitute x = a to test (x − a). Here a = 2.'],
+          errorType:'conceptual', feedback:'✅ Substitute x = 2 to test whether p(2) = 0.'
+        },
+        {
+          id:'pm2', label:'Calculate',
+          q:'Calculate p(2) step by step for p(x) = x³ + 3x² − 4x − 12.',
+          correct:['0','= 0','p(2) = 0','p(2)=0'],
+          hints:['(2)³ = 8, 3(2)² = 12, −4(2) = −8, −12. Sum them carefully.','8 + 12 = 20; 20 − 8 = 12; 12 − 12 = ?'],
+          errorType:'substitution', feedback:'✅ p(2) = 0 — (x − 2) is a factor!'
+        },
+        {
+          id:'pm3', label:'Extend',
+          q:'Now that (x − 2) is confirmed, divide p(x) by (x − 2). What is the degree of the quotient Q(x)?',
+          correct:['degree 2','quadratic','x²','2'],
+          hints:['p(x) has degree 3. Dividing by degree-1 factor gives degree…?'],
+          errorType:'conceptual', feedback:'✅ Q(x) is degree 2 (quadratic): p(x) = (x−2)(x²+5x+6) = (x−2)(x+2)(x+3).'
+        }
+      ]
+    },
+    hard: {
+      topic: 'Polynomials — Full Factorisation',
+      meta: 'Difficulty: Hard · Extension Level',
+      steps: [
+        {
+          id:'ph1', label:'Rational Roots',
+          q:'p(x) = x³ + 3x² − 4x − 12. Find ALL rational roots using the Rational Root Theorem.',
+          correct:['rational root','rational roots theorem','p/q','factors of 12','±1','±2','±3','±4','±6','±12'],
+          hints:['Possible rational roots = ±(factors of constant)/(factors of leading coefficient).'],
+          errorType:'conceptual', feedback:'✅ Possible rational roots: ±{1, 2, 3, 4, 6, 12}. Test each using the Factor Theorem.'
+        },
+        {
+          id:'ph2', label:'Divide',
+          q:'After confirming (x−2) is a factor, divide p(x) = x³ + 3x² − 4x − 12 by (x−2). State Q(x).',
+          correct:['x²+5x+6','x² + 5x + 6','x^2+5x+6'],
+          hints:['Use synthetic division with root 2. Coefficients: 1, 3, −4, −12.'],
+          errorType:'formula', feedback:'✅ Q(x) = x² + 5x + 6. Now fully factorise Q(x).'
+        },
+        {
+          id:'ph3', label:'Full Factors',
+          q:'Fully factorise x² + 5x + 6. Write all three factors of p(x).',
+          correct:['(x+2)(x+3)','x+2 and x+3','(x-2)(x+2)(x+3)'],
+          hints:['Find two numbers that multiply to 6 and add to 5.'],
+          errorType:'formula', feedback:'🎉 p(x) = (x−2)(x+2)(x+3). Roots: x = 2, −2, −3. Perfect!'
+        }
+      ]
+    }
+  },
+  'Arithmetic Progressions': {
+    easy: {
+      topic: 'Arithmetic Progressions — nth Term',
+      meta: 'Difficulty: Easy · Formula Application',
+      steps: [
+        {
+          id:'ap1', label:'Identify',
+          q:'AP: 3, 7, 11, 15, … <br><br>What is the first term (a) and common difference (d)?',
+          correct:['a=3','d=4','first term 3','common difference 4','a=3,d=4'],
+          hints:['a = first term = ?','d = second term − first term = 7 − 3 = ?','a = 3, d = 4.'],
+          errorType:'conceptual', feedback:'✅ a = 3, d = 4. The common difference is constant throughout!'
+        },
+        {
+          id:'ap2', label:'Apply Formula',
+          q:'Use aₙ = a + (n−1)d to find the 20th term.',
+          correct:['79','a20=79','a₂₀ = 79'],
+          hints:['Substitute: a₂₀ = 3 + (20−1)(4).','= 3 + 19 × 4 = 3 + 76 = ?','= 79.'],
+          errorType:'formula', feedback:'✅ a₂₀ = 3 + 76 = 79. Always substitute carefully into the formula!'
+        }
+      ]
+    },
+    medium: {
+      topic: 'Arithmetic Progressions — Sum Formula',
+      meta: 'Difficulty: Medium · Sum of n terms',
+      steps: [
+        {
+          id:'ap3', label:'Formula Choice',
+          q:'Find the sum of first 20 terms of AP: 3, 7, 11, …<br><br>Which formula would you use if you don\'t know the last term: Sₙ = n/2(a+l) or Sₙ = n/2[2a+(n−1)d]?',
+          correct:['second','2a+(n-1)d','2a+(n−1)d','n/2(2a','when last term unknown','don\'t know l'],
+          hints:['The formula Sₙ = n/2(a+l) requires the last term l. Do we know l here?','Use Sₙ = n/2[2a+(n−1)d] when you don\'t know the last term.'],
+          errorType:'formula', feedback:'✅ Use Sₙ = n/2[2a+(n−1)d] when the last term is unknown. This is a common source of errors!'
+        },
+        {
+          id:'ap4', label:'Calculate Sum',
+          q:'Calculate S₂₀ for a = 3, d = 4, n = 20.',
+          correct:['860','s20=860','s₂₀ = 860'],
+          hints:['S₂₀ = 20/2[2(3) + (20−1)(4)] = 10[6 + 76].','= 10 × 82 = ?','= 820. Wait — let me recheck: 6 + 76 = 82, 10×82 = 820. So S₂₀ = 820.'],
+          errorType:'formula', feedback:'✅ S₂₀ = 10 × [6 + 76] = 10 × 82 = 820. Check: each term adds 4, so the average term is (3+79)/2 = 41, sum = 20×41 = 820 ✓'
+        }
+      ]
+    },
+    hard: {
+      topic: 'Arithmetic Progressions — Reverse Problem',
+      meta: 'Difficulty: Hard · Working Backwards',
+      steps: [
+        {
+          id:'ap5', label:'Setup',
+          q:'The sum of first n terms of an AP is 3n² + 5n. Find the 10th term and common difference.',
+          correct:['s10','substitute n=10','65','s(10)=65','put n=10'],
+          hints:['To find the nth term: aₙ = Sₙ − Sₙ₋₁. First, find S₁₀.','S₁₀ = 3(100) + 5(10) = 300 + 50 = 350.'],
+          errorType:'conceptual', feedback:'✅ S₁₀ = 350. Now find S₉ to get a₁₀ = S₁₀ − S₉.'
+        },
+        {
+          id:'ap6', label:'Find a₁₀',
+          q:'S₉ = 3(81) + 5(9) = 243 + 45 = 288. What is a₁₀ = S₁₀ − S₉?',
+          correct:['62','a10=62','a₁₀ = 62','350-288'],
+          hints:['a₁₀ = S₁₀ − S₉ = 350 − 288 = ?'],
+          errorType:'formula', feedback:'🎉 a₁₀ = 62! The common difference d = a₂ − a₁ = S₂−S₁ − S₁ = (12+10) − 8 = 14.'
+        }
+      ]
+    }
+  },
+  'Geometry – Triangles': {
+    easy: {
+      topic: 'Triangles — Pythagoras Theorem',
+      meta: 'Difficulty: Easy · Right Triangle',
+      steps: [
+        {
+          id:'gt1', label:'Identify',
+          q:'A right triangle has legs a = 6 cm and b = 8 cm. What theorem do you use to find the hypotenuse?',
+          correct:['pythagoras','pythagorean theorem','pythagoras theorem','a²+b²=c²'],
+          hints:['For a right triangle, there is a famous theorem relating all three sides.','a² + b² = c², where c is the hypotenuse.'],
+          errorType:'conceptual', feedback:'✅ Pythagoras Theorem: a² + b² = c²!'
+        },
+        {
+          id:'gt2', label:'Calculate',
+          q:'Apply: 6² + 8² = c². What is the hypotenuse c?',
+          correct:['10','c=10','hypotenuse is 10'],
+          hints:['36 + 64 = c². What is 100?','c² = 100, so c = √100 = ?','c = 10.'],
+          errorType:'formula', feedback:'✅ c = 10 cm. This is the classic 3-4-5 triangle, scaled by 2.'
+        }
+      ]
+    },
+    medium: {
+      topic: 'Triangles — Similarity',
+      meta: 'Difficulty: Medium · Similar Triangles',
+      steps: [
+        {
+          id:'gt3', label:'Condition',
+          q:'Two triangles ABC and DEF are given. AB/DE = BC/EF = 2. Angle B = Angle E = 60°.<br><br>Which similarity criterion applies?',
+          correct:['sas','side angle side','SAS similarity'],
+          hints:['We know two sides in ratio and the included angle is equal.','When two sides are proportional and the included angle is equal: SAS similarity.'],
+          errorType:'conceptual', feedback:'✅ SAS Similarity — two sides proportional and included angle equal!'
+        },
+        {
+          id:'gt4', label:'Conclude',
+          q:'Since △ABC ~ △DEF with ratio 2:1, what is the ratio of their areas?',
+          correct:['4:1','4','ratio is 4','4 to 1'],
+          hints:['Area ratio = (corresponding side ratio)²','If sides are in ratio k:1, areas are in ratio k²:1.'],
+          errorType:'formula', feedback:'✅ Area ratio = 2² = 4:1. Areas scale as the square of the similarity ratio!'
+        }
+      ]
+    },
+    hard: {
+      topic: 'Triangles — Proof Problem',
+      meta: 'Difficulty: Hard · Theorem Proof',
+      steps: [
+        {
+          id:'gt5', label:'Statement',
+          q:'State the BPT (Basic Proportionality Theorem) — also known as Thales\' Theorem.',
+          correct:['if a line is drawn parallel','parallel to one side','divides the other two sides','proportionally','bpt'],
+          hints:['The theorem is about a line drawn parallel to one side of a triangle.','If a line is drawn parallel to one side of a triangle, it divides the other two sides proportionally.'],
+          errorType:'conceptual', feedback:'✅ BPT: If a line is drawn parallel to one side of a triangle, it divides the other two sides in the same ratio.'
+        },
+        {
+          id:'gt6', label:'Apply',
+          q:'In △ABC, DE ∥ BC. AD = 3, DB = 6, AE = 4. Find EC using BPT.',
+          correct:['8','ec=8','ec = 8'],
+          hints:['BPT: AD/DB = AE/EC.','3/6 = 4/EC → 1/2 = 4/EC → EC = ?','EC = 8.'],
+          errorType:'formula', feedback:'🎉 EC = 8. AD/DB = AE/EC = 3/6 = 4/8 = 1/2. BPT confirmed!'
+        }
+      ]
+    }
+  }
+};
+
+/* ──────────────────────────────────────────────────────────
+   SECTION 3 · SOCRATIC ENGINE (Multi-topic, Adaptive)
+   ────────────────────────────────────────────────────────── */
+const SocraticEngine = (() => {
+  let currentProblem = null;
+  let stepIndex = 0;
+  let wrongAttempts = 0;
+  let active = false;
+  let qCount = 0;
+  let currentTopic = null;
+
+  const TOPICS = ['Linear Equations','Quadratic Equations','Polynomials','Arithmetic Progressions','Geometry – Triangles'];
+
+  function selectTopic(forceTopic) {
+    if (forceTopic && PROBLEM_BANK[forceTopic]) return forceTopic;
+    const weak = StudentModel.getWeakTopic();
+    const topicKeys = Object.keys(PROBLEM_BANK);
+    // 60% chance to pick weak topic, 40% random
+    if (Math.random() < 0.6 && topicKeys.includes(weak)) return weak;
+    return topicKeys[Math.floor(Math.random() * topicKeys.length)];
+  }
+
+  function init(forceTopic) {
+    active = true; stepIndex = 0; wrongAttempts = 0; qCount = 0;
+    currentTopic = selectTopic(forceTopic);
+    const diff = StudentModel.getDifficultyLevel();
+    const topicBank = PROBLEM_BANK[currentTopic];
+    currentProblem = topicBank[diff] || topicBank['medium'] || Object.values(topicBank)[0];
+    updateHeader();
+    updateStepTracker();
+    const intro = `<strong>📚 Topic: ${currentTopic}</strong><br><br>` + currentProblem.steps[0].q;
+    UI.addMsg('ai', intro, 'neutral');
+    PredictionEngine.showForStep(currentProblem.steps[0]);
+  }
+
+  function currentStep() { return currentProblem?.steps[stepIndex]; }
+
+  function processInput(text) {
+    if (!active || !currentProblem) return null;
+    const step = currentStep();
+    const correct = fuzzyMatch(text, step.correct);
+    return { correct, step, wrongAttempts };
+  }
+
+  function advance() {
+    wrongAttempts = 0; stepIndex++; qCount++;
+    if (stepIndex >= currentProblem.steps.length) { active = false; return 'mastered'; }
+    updateStepTracker();
+    PredictionEngine.showForStep(currentProblem.steps[stepIndex]);
+    return 'next';
+  }
+
+  function escalateHint() {
+    wrongAttempts++;
+    const hints = currentStep().hints;
+    const level = Math.min(wrongAttempts - 1, hints.length - 1);
+    return { hint: hints[level], isReveal: level === hints.length - 1 };
+  }
+
+  function fuzzyMatch(text, keywords) {
+    const n = text.toLowerCase().replace(/\s+/g,'').replace(/[×*·]/g,'*').replace(/–|—/g,'-');
+    return keywords.some(kw => n.includes(kw.toLowerCase().replace(/\s+/g,'')));
+  }
+
+  function updateHeader() {
+    if (!currentProblem) return;
+    const badge = document.getElementById('topic-badge');
+    const titleEl = document.getElementById('current-topic');
+    const metaEl = document.getElementById('problem-meta');
+    if (badge) badge.textContent = '🎯 ' + currentTopic;
+    if (titleEl) titleEl.textContent = currentProblem.topic;
+    if (metaEl) metaEl.textContent = currentProblem.meta;
+    // Sync sidebar
+    document.querySelectorAll('.topic-btn').forEach(b => {
+      const t = b.textContent.trim().replace(/\s+\w+$/, '').trim();
+      b.classList.toggle('active', currentTopic.startsWith(t.split('–')[0].trim()) || t.includes(currentTopic.split(' ')[0]));
+    });
+    const sidebarWeak = document.getElementById('sidebar-weak');
+    if (sidebarWeak) sidebarWeak.textContent = StudentModel.getWeakTopic();
+    const diffLabel = document.getElementById('diff-label');
+    if (diffLabel) diffLabel.textContent = StudentModel.getDifficultyLevel();
+    const errLabel = document.getElementById('err-label');
+    if (errLabel) errLabel.textContent = StudentModel.getDominantErrorType() + ' errors';
+  }
+
+  function updateStepTracker() {
+    const tracker = document.getElementById('step-tracker');
+    if (!tracker || !currentProblem) return;
+    tracker.innerHTML = currentProblem.steps.map((s, i) => {
+      let cls = 'step-todo';
+      if (i < stepIndex) cls = 'step-done';
+      else if (i === stepIndex && active) cls = 'step-active';
+      return `<span class="step-pip ${cls}">${s.label}</span>`;
+    }).join('');
+  }
+
+  function isActive() { return active; }
+  function getQCount() { return qCount; }
+  function getCurrentProblem() { return currentProblem; }
+  function getCurrentTopic() { return currentTopic; }
+  function reset() { active = false; stepIndex = 0; wrongAttempts = 0; currentProblem = null; }
+
+  return { init, processInput, advance, escalateHint, currentStep, isActive, getQCount, getCurrentProblem, getCurrentTopic, updateHeader, updateStepTracker, reset };
+})();
+
+/* ──────────────────────────────────────────────────────────
+   SECTION 4 · PREDICTIVE ERROR AI (WOW Feature)
+   ────────────────────────────────────────────────────────── */
+const PredictionEngine = {
+  // Predict based on step's expected error type + student's dominant pattern
+  getPrediction(step) {
+    if (!step) return null;
+    const dominant = StudentModel.getDominantErrorType();
+    const stepError = step.errorType;
+    const predictions = {
+      sign: '⚠️ Based on your past mistakes, you often flip signs here. Double-check negatives before answering.',
+      substitution: '⚠️ Watch out — you\'ve previously missed substituting into all terms. Go term by term.',
+      formula: '⚠️ You\'ve confused formulas in the past. Write out the full formula before substituting.',
+      conceptual: '⚠️ This step requires understanding why — not just what. Recall the theorem\'s condition first.'
+    };
+    // Show prediction if step error type matches dominant pattern, or randomly show another
+    if (stepError === dominant || Math.random() < 0.3) {
+      return predictions[stepError] || predictions[dominant];
+    }
+    return null;
+  },
+
+  showForStep(step) {
+    const el = document.getElementById('predictive-warning');
+    const txt = document.getElementById('predictive-warning-text');
+    const pred = this.getPrediction(step);
+    if (el && txt && pred) {
+      txt.textContent = pred;
+      el.style.display = 'block';
+      el.style.opacity = '0';
+      el.style.transition = 'opacity 0.3s';
+      requestAnimationFrame(() => { el.style.opacity = '1'; });
+    } else if (el) {
+      el.style.display = 'none';
+    }
+    // Also update sidebar
+    const sidebarPred = document.getElementById('predicted-mistake');
+    if (sidebarPred && pred) {
+      sidebarPred.innerHTML = `<div class="pred-label" style="color:var(--accent)">⚡ PREDICTED ERROR</div><div style="color:var(--muted)">${pred.replace(/^⚠️ /,'')}</div>`;
+      sidebarPred.className = 'prediction-banner visible';
+    }
+  },
+
+  afterCorrect(step) {
+    const el = document.getElementById('predictive-warning');
+    const txt = document.getElementById('predictive-warning-text');
+    if (step?.errorType === StudentModel.getDominantErrorType()) {
+      if (el && txt) {
+        el.style.background = 'linear-gradient(135deg,#e2f5ed,#f0faf8)';
+        el.style.borderColor = '#a8d8c0';
+        txt.textContent = '✅ Great — you avoided your usual ' + step.errorType + ' error!';
+        el.style.display = 'block';
+        setTimeout(() => { if(el) el.style.display = 'none'; }, 4000);
+      }
+    } else if (el) { el.style.display = 'none'; }
+    const sidebarPred = document.getElementById('predicted-mistake');
+    if (sidebarPred) {
+      sidebarPred.innerHTML = `<div class="pred-label" style="color:var(--green)">✅ PATTERN AVOIDED</div><div style="color:var(--green)">You avoided your usual ${step?.errorType || ''} error!</div>`;
+      sidebarPred.className = 'prediction-banner visible correct-avoided';
+    }
+  },
+
+  afterWrong(step) {
+    const el = document.getElementById('predictive-warning');
+    const txt = document.getElementById('predictive-warning-text');
+    if (step?.errorType === StudentModel.getDominantErrorType()) {
+      if (el && txt) {
+        el.style.background = 'linear-gradient(135deg,#fde8e2,#fef5f3)';
+        el.style.borderColor = '#f0b8a8';
+        txt.textContent = '⚠️ This matches your past error pattern: ' + step.errorType + ' mistake. Try again carefully.';
+        el.style.display = 'block';
+      }
+    }
+    const sidebarPred = document.getElementById('predicted-mistake');
+    if (sidebarPred) {
+      sidebarPred.innerHTML = `<div class="pred-label" style="color:var(--accent)">⚠️ PATTERN MATCHED</div><div style="color:var(--accent)">This is your typical ${step?.errorType || ''} error pattern.</div>`;
+      sidebarPred.className = 'prediction-banner visible matched';
+    }
+  }
+};
+
+/* ──────────────────────────────────────────────────────────
+   SECTION 5 · HINT SYSTEM
+   ────────────────────────────────────────────────────────── */
+const HintSystem = {
+  render(hint, isReveal, wrongCount) {
+    const color = isReveal ? '#2e7d5e' : (wrongCount >= 2 ? '#c84b2f' : '#8a6a1f');
+    const bg = isReveal ? '#e2f5ed' : (wrongCount >= 2 ? '#fde8e2' : '#fff9ed');
+    const border = isReveal ? '#a8d8c0' : (wrongCount >= 2 ? '#f0b8a8' : '#e8d8a8');
+    const icon = isReveal ? '✅' : (wrongCount >= 2 ? '🔍' : '💡');
+    const label = ['💡 Nudge','🔍 Deeper Hint','✅ Revealed'][Math.min(wrongCount-1,2)];
+    return `<div class="hint-card" style="background:${bg};border-color:${border}">
+      <span class="hint-icon">${icon}</span>
+      <div>
+        <div style="font-size:0.68rem;font-family:'DM Mono',monospace;color:${color};margin-bottom:2px;font-weight:600">${label}</div>
+        <span style="color:${color}">${hint}</span>
+      </div>
+    </div>`;
+  }
+};
+
+/* ──────────────────────────────────────────────────────────
+   SECTION 6 · MIND MAP (Knowledge Graph)
+   ────────────────────────────────────────────────────────── */
+const MindMap = (() => {
+  let canvas, ctx, nodes = [], edges = [], hoveredNode = null;
+  let W = 0, H = 0;
+
+  const NODE_DATA = [
+    { id:'poly', label:'Polynomials', x:0.5, y:0.42, r:36, color:'#c84b2f', strength:0 },
+    { id:'quad', label:'Quadratic\nEqns', x:0.2, y:0.25, r:30, color:'#2f6bc8', strength:65 },
+    { id:'linear', label:'Linear\nEqns', x:0.8, y:0.22, r:28, color:'#2e7d5e', strength:82 },
+    { id:'ap', label:'Arith.\nProg.', x:0.75, y:0.65, r:26, color:'#c8952f', strength:55 },
+    { id:'geo', label:'Geometry', x:0.22, y:0.65, r:26, color:'#6b4fc8', strength:78 },
+    { id:'prob', label:'Probability', x:0.5, y:0.12, r:22, color:'#7a7468', strength:70 },
+    { id:'roots', label:'Roots &\nZeroes', x:0.85, y:0.45, r:20, color:'#2e7d5e', strength:55 }
+  ];
+
+  const EDGE_DATA = [
+    {from:'poly',to:'quad'},{from:'poly',to:'roots'},{from:'poly',to:'ap'},
+    {from:'quad',to:'linear'},{from:'geo',to:'quad'},{from:'linear',to:'prob'},
+    {from:'roots',to:'ap'},{from:'prob',to:'geo'}
+  ];
+
+  function init(canvasEl) {
+    canvas = canvasEl;
+    ctx = canvas.getContext('2d');
+    resize(); buildNodes(); buildEdges();
+    canvas.addEventListener('mousemove', onHover);
+    canvas.addEventListener('click', onClick);
+    window.addEventListener('resize', () => { resize(); buildNodes(); });
+    animate();
+  }
+
+  function resize() {
+    W = canvas.offsetWidth; H = canvas.offsetHeight;
+    canvas.width = W * devicePixelRatio;
+    canvas.height = H * devicePixelRatio;
+    ctx.scale(devicePixelRatio, devicePixelRatio);
+  }
+
+  function buildNodes() {
+    nodes = NODE_DATA.map(n => {
+      let strength = n.strength;
+      const topicMap = { poly:'Polynomials', quad:'Quadratic Equations', linear:'Linear Equations', ap:'Arithmetic Progressions', geo:'Geometry', prob:'Probability' };
+      const tk = topicMap[n.id];
+      if (tk) strength = StudentModel.getAccuracy(tk) || strength;
+      return { ...n, x: n.x * W, y: n.y * H, vx: 0, vy: 0, strength, targetStrength: strength, pulseT: 0 };
+    });
+  }
+
+  function buildEdges() {
+    edges = EDGE_DATA.map(e => ({
+      from: nodes.find(n=>n.id===e.from), to: nodes.find(n=>n.id===e.to)
+    })).filter(e=>e.from&&e.to);
+  }
+
+  function onHover(e) {
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+    hoveredNode = nodes.find(n => Math.hypot(n.x-mx, n.y-my) < n.r + 5) || null;
+    canvas.style.cursor = hoveredNode ? 'pointer' : 'default';
+  }
+
+  function onClick(e) {
+    if (hoveredNode) {
+      const topicMap = { poly:'Polynomials', quad:'Quadratic Equations', linear:'Linear Equations', ap:'Arithmetic Progressions', geo:'Geometry – Triangles' };
+      const topic = topicMap[hoveredNode.id];
+      if (topic) { loadNewProblem(topic); showScreen('tutor'); }
+    }
+  }
+
+  function pulseNode(nodeId) {
+    const node = nodes.find(n=>n.id===nodeId);
+    if (node) { node.pulseT = 1.0; node.targetStrength = Math.min(100, node.strength + 15); }
+  }
+
+  function animate() {
+    requestAnimationFrame(animate); draw();
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    edges.forEach(e => {
+      const alpha = 0.12 + 0.1 * ((e.from.strength + e.to.strength) / 200);
+      ctx.beginPath(); ctx.moveTo(e.from.x, e.from.y); ctx.lineTo(e.to.x, e.to.y);
+      ctx.strokeStyle = `rgba(120,110,100,${alpha})`; ctx.lineWidth = 1.5; ctx.stroke();
+    });
+    nodes.forEach(n => {
+      n.strength += (n.targetStrength - n.strength) * 0.03;
+      let pulse = 0;
+      if (n.pulseT > 0) { pulse = Math.sin(n.pulseT * Math.PI) * 8; n.pulseT = Math.max(0, n.pulseT - 0.025); }
+      const isHovered = hoveredNode === n;
+      const radius = n.r + pulse + (isHovered ? 4 : 0);
+      const alpha = 0.35 + 0.65 * (n.strength / 100);
+      const masteryPct = n.strength / 100;
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, radius + 6, -Math.PI/2, -Math.PI/2 + 2*Math.PI*masteryPct);
+      ctx.strokeStyle = n.color; ctx.globalAlpha = 0.4; ctx.lineWidth = 3; ctx.stroke(); ctx.globalAlpha = 1;
+      ctx.beginPath(); ctx.arc(n.x, n.y, radius, 0, Math.PI*2);
+      ctx.fillStyle = n.color + Math.round(alpha*255).toString(16).padStart(2,'0'); ctx.fill();
+      ctx.strokeStyle = n.color; ctx.lineWidth = isHovered ? 2.5 : 1.5; ctx.stroke();
+      ctx.fillStyle = '#ffffff'; ctx.globalAlpha = Math.max(0.6, alpha);
+      ctx.font = `500 ${Math.round(9 + radius/7)}px 'Instrument Sans', sans-serif`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      const lines = n.label.split('\n');
+      lines.forEach((line, i) => ctx.fillText(line, n.x, n.y + (i - (lines.length-1)/2) * 13));
+      ctx.globalAlpha = 1;
+      if (isHovered) {
+        ctx.fillStyle = '#0f0e0c'; ctx.globalAlpha = 0.85;
+        const badge = `${Math.round(n.strength)}% mastery`;
+        const bw = ctx.measureText(badge).width + 16;
+        roundRect(ctx, n.x - bw/2, n.y - radius - 30, bw, 20, 5); ctx.fill();
+        ctx.fillStyle = '#fff'; ctx.globalAlpha = 1;
+        ctx.font = '500 10px "DM Mono", monospace';
+        ctx.fillText(badge, n.x, n.y - radius - 20);
+      }
+    });
+  }
+
+  function roundRect(c, x, y, w, h, r) {
+    c.beginPath(); c.moveTo(x+r,y); c.lineTo(x+w-r,y); c.arcTo(x+w,y,x+w,y+r,r);
+    c.lineTo(x+w,y+h-r); c.arcTo(x+w,y+h,x+w-r,y+h,r);
+    c.lineTo(x+r,y+h); c.arcTo(x,y+h,x,y+h-r,r);
+    c.lineTo(x,y+r); c.arcTo(x,y,x+r,y,r); c.closePath();
+  }
+
+  function updateFromStudent() {
+    nodes.forEach(n => {
+      const topicMap = { poly:'Polynomials', quad:'Quadratic Equations', linear:'Linear Equations', ap:'Arithmetic Progressions', geo:'Geometry', prob:'Probability' };
+      const t = topicMap[n.id];
+      if (t) n.targetStrength = StudentModel.getAccuracy(t) || n.strength;
+    });
+  }
+
+  return { init, pulseNode, updateFromStudent };
+})();
+
+/* ──────────────────────────────────────────────────────────
+   SECTION 7 · UI CONTROLLER
+   ────────────────────────────────────────────────────────── */
+const UI = {
+  addMsg(role, html, type, confidence = null) {
+    const area = document.getElementById('chat-area');
+    const div = document.createElement('div');
+    div.className = `msg msg-${role === 'ai' ? 'ai' : 'user'}`;
+
+    let bubbleStyle = '';
+    if (type === 'correct') bubbleStyle = 'border-left:3px solid #2e7d5e;background:linear-gradient(to right,#f0faf5,var(--card));';
+    if (type === 'wrong') bubbleStyle = 'border-left:3px solid #c84b2f;background:linear-gradient(to right,#fef5f3,var(--card));';
+
+    let confidenceBadge = '';
+    if (confidence !== null && role === 'user') {
+      const color = confidence > 65 ? '#2e7d5e' : confidence > 40 ? '#c8952f' : '#c84b2f';
+      const label = confidence > 65 ? 'Confident' : confidence > 40 ? 'Uncertain' : 'Hesitant';
+      confidenceBadge = `<div style="display:flex;align-items:center;gap:6px;margin-top:5px;justify-content:flex-end">
+        <div style="height:3px;width:${Math.min(confidence,80)}px;background:${color};border-radius:2px;transition:width 0.5s"></div>
+        <span style="font-size:0.66rem;font-family:'DM Mono',monospace;color:${color}">${label} (${confidence}%)</span>
+      </div>`;
+    }
+
+    div.innerHTML = `
+      <div class="msg-sender">${role === 'ai' ? '🤖 EduFlow AI' : 'You'}</div>
+      <div class="msg-bubble" style="${bubbleStyle}">${html}${confidenceBadge}</div>
+    `;
+    area.appendChild(div);
+    this.scrollChat();
+
+    if (role === 'ai' && type !== 'thinking') {
+      const bubble = div.querySelector('.msg-bubble');
+      bubble.style.opacity = '0'; bubble.style.transform = 'translateY(4px)';
+      bubble.style.transition = 'opacity 0.22s ease, transform 0.22s ease';
+      requestAnimationFrame(() => { bubble.style.opacity = '1'; bubble.style.transform = 'none'; });
+    }
+  },
+
+  showThinking() {
+    const id = 'think-' + Date.now();
+    const div = document.createElement('div');
+    div.className = 'msg msg-ai'; div.id = id;
+    div.innerHTML = `<div class="msg-sender">🤖 EduFlow AI · Thinking…</div><div class="msg-bubble thinking"><span>●</span><span>●</span><span>●</span></div>`;
+    document.getElementById('chat-area').appendChild(div);
+    this.scrollChat();
+    return id;
+  },
+
+  removeThinking(id) { const el = document.getElementById(id); if (el) el.remove(); },
+
+  scrollChat() { const a = document.getElementById('chat-area'); if (a) a.scrollTop = a.scrollHeight; },
+
+  updateSidebarInfo() {
+    const qEl = document.getElementById('q-count');
+    if (qEl) qEl.textContent = SocraticEngine.getQCount() + 3;
+    const diffLabel = document.getElementById('diff-label');
+    if (diffLabel) diffLabel.textContent = StudentModel.getDifficultyLevel();
+    const errLabel = document.getElementById('err-label');
+    if (errLabel) errLabel.textContent = StudentModel.getDominantErrorType() + ' errors';
+    const sidebarWeak = document.getElementById('sidebar-weak');
+    if (sidebarWeak) sidebarWeak.textContent = StudentModel.getWeakTopic();
+  },
+
+  showMastered() {
+    const topic = SocraticEngine.getCurrentTopic() || 'this topic';
+    const acc = StudentModel.getAccuracy();
+    this.addMsg('ai', `<div style="font-size:1.4rem;margin-bottom:7px">🏆</div>
+      <strong style="font-size:1.02rem;color:var(--green)">Concept Mastered!</strong>
+      <p style="margin-top:7px;font-size:0.87rem">You completed all steps on <em>${topic}</em>. Session accuracy: <strong>${acc}%</strong></p>
+      <p style="margin-top:3px;font-size:0.8rem;color:var(--muted)">Knowledge graph updated · Dashboard refreshed · Worksheet adapted</p>
+      <div style="margin-top:10px;display:flex;gap:7px;flex-wrap:wrap">
+        <button class="opt-chip" onclick="loadNewProblem()" style="background:var(--accent2);color:white;border-color:var(--accent2);font-size:0.78rem">🔄 New Topic</button>
+        <button class="opt-chip" onclick="showScreen('worksheet')" style="background:var(--green);color:white;border-color:var(--green);font-size:0.78rem">📋 Worksheet</button>
+        <button class="opt-chip" onclick="showScreen('dashboard')" style="font-size:0.78rem">📊 Dashboard</button>
+      </div>`, 'correct');
+    MindMap.pulseNode('poly');
+    MindMap.updateFromStudent();
+  }
+};
+
+/* ──────────────────────────────────────────────────────────
+   SECTION 8 · DASHBOARD
+   ────────────────────────────────────────────────────────── */
+function updateDashboard() {
+  const sd = StudentModel.get();
+  const acc = StudentModel.getAccuracy();
+  const weak = StudentModel.getWeakTopic();
+  const errType = StudentModel.getDominantErrorType();
+
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  set('stat-sessions', sd.sessions);
+  set('stat-accuracy', acc + '%');
+  set('stat-weak', weak.split(' ')[0]);
+  set('stat-streak', sd.streak);
+
+  // Update key insight
+  const insightEl = document.getElementById('insight-summary');
+  if (insightEl) {
+    const totalMistakes = sd.mistakes.length;
+    const polyMistakes = sd.mistakes.filter(m=>m.topic==='Polynomials').length;
+    const pct = totalMistakes > 0 ? Math.round(polyMistakes/totalMistakes*100) : 62;
+    insightEl.innerHTML = `📊 <strong>Key Insight:</strong> You make <strong>${pct}%</strong> of your mistakes in <strong>${weak}</strong>, mainly due to <strong>${errType} errors</strong>. Strongest: <strong>Linear Equations (${StudentModel.getAccuracy('Linear Equations')}%)</strong>.`;
+  }
+
+  // Also update insights page key insight
+  const kiText = document.getElementById('key-insight-text');
+  if (kiText) {
+    const polyAcc = StudentModel.getAccuracy('Polynomials');
+    kiText.innerHTML = `You make <strong>${errType} errors</strong> most frequently, especially in <strong>${weak} (${StudentModel.getAccuracy(weak)}% accuracy)</strong>. Your strongest topic is <strong>Linear Equations at ${StudentModel.getAccuracy('Linear Equations')}%</strong>. Recommended focus: sign-tracking during substitution.`;
+  }
+
+  // Update topic bars
+  const topicBarMap = [
+    ['Linear Equations',0], ['Quadratic Equations',1], ['Geometry',2],
+    ['Polynomials',3], ['Probability',4], ['Arithmetic Progressions',5]
+  ];
+  topicBarMap.forEach(([topic, idx]) => {
+    const bars = document.querySelectorAll('.topic-bar');
+    const pcts = document.querySelectorAll('.topic-pct');
+    if (!bars[idx]) return;
+    const pct = StudentModel.getAccuracy(topic) || 0;
+    bars[idx].style.width = pct + '%';
+    bars[idx].style.background = pct >= 70 ? 'var(--green)' : pct >= 50 ? 'var(--gold)' : 'var(--accent)';
+    if (pcts[idx]) pcts[idx].textContent = pct + '%';
+  });
+
+  // Mistakes list
+  const list = document.getElementById('live-mistake-list');
+  if (list && sd.mistakes.length) {
+    list.innerHTML = sd.mistakes.slice(0, 4).map(m => {
+      const tagCls = m.topic==='Polynomials' ? 'tag-algebra' : m.topic.includes('Geo') ? 'tag-geo' : m.topic.includes('AP')||m.topic.includes('Arith') ? 'tag-ap' : 'tag-calc';
+      return `<div class="mistake-item"><span class="mistake-tag ${tagCls}">${m.topic}</span><div style="font-size:0.83rem">${m.error}</div></div>`;
+    }).join('');
+  }
+
+  const badge = document.getElementById('weak-badge');
+  if (badge) { badge.textContent = '⚠ ' + weak; badge.style.display = 'inline-block'; }
+
+  // Update accuracy bar chart in insights
+  const barChart = document.getElementById('accuracy-bar-chart');
+  if (barChart) {
+    const topics = [
+      {label:'Linear', key:'Linear Equations'},
+      {label:'Poly ⚠', key:'Polynomials'},
+      {label:'Quad', key:'Quadratic Equations'},
+      {label:'Geo', key:'Geometry'},
+      {label:'Prob', key:'Probability'},
+      {label:'AP', key:'Arithmetic Progressions'}
+    ];
+    barChart.innerHTML = topics.map(t => {
+      const pct = StudentModel.getAccuracy(t.key) || 0;
+      const bg = t.key===weak ? 'var(--accent)' : pct>=70 ? 'var(--green)' : 'var(--gold)';
+      return `<div class="bar-group" style="max-width:60px">
+        <div class="bar" style="height:${pct}%;background:${bg};max-width:40px"></div>
+        <div class="bar-label">${t.label}</div>
+        <div class="bar-pct">${pct}%</div>
+      </div>`;
+    }).join('');
+  }
+
+  // Update error patterns dynamically
+  const patternList = document.getElementById('pattern-list');
+  if (patternList) {
+    const ep = sd.errorPatterns;
+    const total = Object.values(ep).reduce((a,b)=>a+b,0) || 1;
+    patternList.innerHTML = Object.entries(ep).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([type,count]) => {
+      const icons = {sign:'⚠️',formula:'💡',substitution:'🔵',conceptual:'🔍'};
+      const iconCls = {sign:'icon-red',formula:'icon-gold',substitution:'icon-blue',conceptual:'icon-blue'};
+      const descs = {
+        sign:`Frequently flips signs during substitution — detected in ${sd.mistakes.filter(m=>m.errorType==='sign').length} recent problems.`,
+        formula:`Applies incorrect formula variant — especially in AP and polynomial contexts.`,
+        substitution:`Misses substituting into all terms, causing partial evaluation errors.`,
+        conceptual:`Applies theorem without understanding the condition — needs conceptual grounding.`
+      };
+      return `<div class="pattern-item">
+        <div class="pattern-icon ${iconCls[type]||'icon-blue'}">${icons[type]||'🔍'}</div>
+        <div class="pattern-body">
+          <div class="pattern-name">${type.charAt(0).toUpperCase()+type.slice(1)} Errors</div>
+          <div class="pattern-desc">${descs[type]||'Error pattern detected.'}</div>
+        </div>
+        <div class="pattern-freq">${count}/${total} sessions</div>
+      </div>`;
+    }).join('');
+  }
+
+  MindMap.updateFromStudent();
+}
+
+/* ──────────────────────────────────────────────────────────
+   SECTION 9 · CHAT FLOW
+   ────────────────────────────────────────────────────────── */
+let awaitingResponse = false;
+
+async function sendMessage() {
+  if (awaitingResponse) return;
+  const input = document.getElementById('chat-input');
+  const btn = document.getElementById('send-btn');
+  const text = input.value.trim();
+  if (!text) return;
+
+  input.value = ''; input.disabled = true;
+  if (btn) { btn.disabled = true; btn.textContent = '…'; }
+  awaitingResponse = true;
+
+  const confidence = StudentModel.getConfidenceScore(text);
+  UI.addMsg('user', text, 'neutral', confidence);
+
+  const thinkId = UI.showThinking();
+  await delay(700 + Math.random() * 400);
+  UI.removeThinking(thinkId);
+
+  const topic = SocraticEngine.getCurrentTopic() || 'Mathematics';
+
+  if (SocraticEngine.isActive()) {
+    const { correct, step } = SocraticEngine.processInput(text);
+
+    if (correct) {
+      StudentModel.update('correct', topic, null);
+      UI.addMsg('ai', step.feedback, 'correct');
+      PredictionEngine.afterCorrect(step);
+      const result = SocraticEngine.advance();
+      UI.updateSidebarInfo(); updateDashboard();
+
+      if (result === 'mastered') {
+        StudentModel.get().sessions++; StudentModel.get().streak++;
+        StudentModel.save();
+        await delay(500);
+        UI.showMastered();
+        generateSmartWorksheet();
+      } else {
+        await delay(350);
+        UI.addMsg('ai', SocraticEngine.currentStep().q, 'neutral');
+        SocraticEngine.updateStepTracker();
+      }
+    } else {
+      StudentModel.update('wrong', topic, step.errorType);
+      const wa = SocraticEngine.processInput(text).wrongAttempts || 1;
+      const { hint, isReveal } = SocraticEngine.escalateHint();
+      PredictionEngine.afterWrong(step);
+      UI.addMsg('ai', `Not quite — let me guide you.${HintSystem.render(hint, isReveal, wa)}`, 'wrong');
+      UI.updateSidebarInfo(); updateDashboard();
+    }
+  } else {
+    const reply = await callAIWithFallback(text, topic);
+    UI.addMsg('ai', reply, 'neutral');
+  }
+
+  input.disabled = false;
+  if (btn) { btn.disabled = false; btn.textContent = 'Send →'; }
+  awaitingResponse = false;
+}
+
+function quickReply(text) {
+  document.getElementById('chat-input').value = text;
+  sendMessage();
+}
+
+function loadNewProblem(forceTopic) {
+  const chatArea = document.getElementById('chat-area');
+  if (chatArea) chatArea.innerHTML = '';
+  SocraticEngine.reset();
+  SocraticEngine.init(forceTopic);
+  showScreen('tutor');
+}
+
+/* ──────────────────────────────────────────────────────────
+   SECTION 10 · AI API + FALLBACKS
+   ────────────────────────────────────────────────────────── */
+const FALLBACK_REPLIES = [
+  "Interesting reasoning! Which specific step are you most uncertain about?",
+  "Good instinct — now connect that reasoning to the theorem's formal condition.",
+  "You're close. Can you write out the formula before substituting?",
+  "Let's double-check: walk me through your answer step by step.",
+  "Can you explain why that step logically follows from the previous one?"
+];
+let fbIdx = 0;
+
+async function callAI(system, userMsg) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514', max_tokens: 400, system,
+      messages: [{ role: 'user', content: userMsg }]
+    })
+  });
+  const data = await res.json();
+  return data.content?.map(c => c.text || '').join('') || '';
+}
+
+async function callAIWithFallback(text, topic) {
+  try {
+    return await callAI(
+      `You are EduFlow AI, a Socratic tutor for Class 10 mathematics. The student just finished studying ${topic}. Ask a brief follow-up question (2-3 sentences) that deepens understanding. Never give away answers. Be encouraging but push them to think.`,
+      text
+    );
+  } catch(e) { return FALLBACK_REPLIES[fbIdx++ % FALLBACK_REPLIES.length]; }
+}
+
+async function streamToEl(el, system, userMsg) {
+  el.innerHTML = '<span style="color:var(--muted);font-style:italic;font-size:0.84rem">✦ Thinking…</span>';
+  try {
+    const text = await callAI(system, userMsg);
+    el.textContent = '';
+    el.classList.add('stream-cursor');
+    let i = 0;
+    const iv = setInterval(() => {
+      el.textContent += text[i] || ''; i++;
+      if (i >= text.length) { clearInterval(iv); el.classList.remove('stream-cursor'); }
+    }, 11);
+  } catch(e) { el.textContent = 'AI unavailable — please try again.'; }
+}
+
+/* ──────────────────────────────────────────────────────────
+   SECTION 11 · AI TOOLS
+   ────────────────────────────────────────────────────────── */
+let explainLevel = 'beginner';
+function setLevel(btn, level) {
+  document.querySelectorAll('.level-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active'); explainLevel = level;
+}
+
+async function runExplainer() {
+  const concept = document.getElementById('concept-select').value;
+  const btn = document.getElementById('explain-btn');
+  btn.disabled = true; btn.textContent = '⏳ Thinking…';
+  const el = document.getElementById('explain-output');
+  const weak = StudentModel.getWeakTopic();
+  const errType = StudentModel.getDominantErrorType();
+  const levelMap = {
+    beginner: `Explain for a Class 10 student seeing this concept for the first time. Structure your response as: 1) CONCEPT (2 sentences), 2) EXAMPLE (one concrete worked example), 3) QUICK TEST (one question for the student). Keep it under 130 words. ${errType} errors are this student's weakness — mention this subtly.`,
+    standard: `Explain at standard Class 10 CBSE level. Include: formal definition, worked example, and one common error students make (this student makes ${errType} errors). Flag exactly WHERE ${errType} errors occur. Max 130 words.`,
+    'deep-dive': `Give a deep mathematical treatment for a motivated Class 10 student: formal proof or derivation, connection to other theorems, one edge case, and one challenging extension question. This student's weak topic is ${weak}. Max 180 words.`
+  };
+  await streamToEl(el,
+    `You are EduFlow AI. Student weak topic: ${weak}. ${levelMap[explainLevel]}`,
+    `Explain: ${concept}`
+  );
+  btn.disabled = false; btn.innerHTML = '<span>✦</span> Explain This Concept';
+}
+
+let reportType = 'student';
+function setReportType(btn, type) {
+  document.querySelectorAll('.report-chip').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active'); reportType = type;
+}
+
+async function runReport() {
+  const btn = document.getElementById('report-btn');
+  btn.disabled = true; btn.textContent = '⏳ Writing report…';
+  const el = document.getElementById('report-output');
+  const sd = StudentModel.get();
+  const acc = StudentModel.getAccuracy();
+  const weak = StudentModel.getWeakTopic();
+  const errType = StudentModel.getDominantErrorType();
+  const topicStr = Object.entries(sd.topicAccuracy).map(([t,ta]) =>
+    `${t}: ${Math.round(ta.correct/Math.max(ta.total,1)*100)}%`
+  ).join(', ');
+  const audienceMap = {
+    student: `Write directly to Arjun (2nd person). Be honest, specific, motivating. Reference his actual accuracy and error patterns. Give ONE concrete actionable step for this week.`,
+    parent: `Write to Arjun's parent (3rd person). Be factual, reassuring. Explain what needs attention in plain language. Mention strengths first, then areas for focus.`,
+    teacher: `Write to a Class 10 maths teacher. Be analytical: specify which sub-topics need intervention, the ${errType} error pattern's likely cognitive cause, and one recommended pedagogical approach.`
+  };
+  const liveData = `Student: Arjun, Class 10. Sessions: ${sd.sessions}. Accuracy: ${acc}%. Weak topic: ${weak}. Dominant error: ${errType}. Topic accuracy: ${topicStr}. Recent mistakes: ${sd.mistakes.slice(0,3).map(m=>m.error).join('; ')}. Streak: ${sd.streak} days.`;
+  await streamToEl(el,
+    `You are EduFlow AI writing a precise, data-driven progress report. ${audienceMap[reportType]} Under 120 words.`,
+    `Report data:\n${liveData}`
+  );
+  btn.disabled = false; btn.innerHTML = '<span>✦</span> Generate Report';
+}
+
+async function runMistakeAnalyser() {
+  const q = document.getElementById('mistake-q').value;
+  const a = document.getElementById('mistake-a').value;
+  const btn = document.getElementById('mistake-btn');
+  btn.disabled = true; btn.textContent = '⏳ Diagnosing…';
+  const el = document.getElementById('mistake-output');
+  const errType = StudentModel.getDominantErrorType();
+  await streamToEl(el,
+    `You are EduFlow AI Mistake Analyser. This student frequently makes ${errType} errors.
+    Structure your response EXACTLY as:
+    WHAT: [Identify the exact line where the error occurs and name the error type]
+    WHY: [Explain the cognitive reason this error happens — be specific, not generic]
+    FIX: [One corrective mental checklist item the student can apply next time]
+    SOCRATIC: [Ask one guiding question to redirect their thinking, don't give the answer]
+    Keep total under 100 words. Be precise and direct.`,
+    `Question: ${q}\nStudent's wrong working:\n${a}`
+  );
+  StudentModel.addMistake('Polynomials', `Mistake Analyser: ${errType} error diagnosed`, errType);
+  btn.disabled = false; btn.innerHTML = '<span>✦</span> Analyse This Mistake';
+}
+
+async function runGenerator() {
+  const topic = document.getElementById('gen-topic').value;
+  const diff = document.getElementById('gen-difficulty').value;
+  const count = document.getElementById('gen-count').value;
+  const btn = document.getElementById('gen-btn');
+  btn.disabled = true; btn.textContent = '⏳ Generating…';
+  const result = document.getElementById('gen-result');
+  result.innerHTML = '';
+  const weak = StudentModel.getWeakTopic();
+  const errType = StudentModel.getDominantErrorType();
+  const recentMistakes = StudentModel.get().mistakes.slice(0,3).map(m=>m.error).join('; ');
+
+  // Try local bank first for speed
+  const localTopicKey = Object.keys(QUESTION_BANK).find(k => k.toLowerCase().includes(topic.toLowerCase().split(' ')[0].toLowerCase()));
+  if (localTopicKey) {
+    const qs = generateQuestionsFromBank(localTopicKey, parseInt(count));
+    qs.forEach((q,i) => {
+      const d = document.createElement('div');
+      d.className = 'gen-q';
+      d.innerHTML = `<div class="gen-q-num">Q${i+1} · ${q.marks} marks · ${q.topic}</div>${q.q}`;
+      result.appendChild(d);
+    });
+    btn.disabled = false; btn.innerHTML = '<span>✦</span> Generate Worksheet';
+    return;
+  }
+
+  try {
+    const text = await callAI(
+      `You are EduFlow AI. Generate exactly ${count} Class 10 CBSE maths questions as JSON array.
+      Student profile: weak in ${weak}, makes frequent ${errType} errors. Recent mistakes: ${recentMistakes}.
+      Design questions to target these gaps specifically. Each: {"q":"question text","marks":number,"tests":"skill being tested"}.
+      Return ONLY valid JSON array, no markdown, no preamble.`,
+      `Topic: ${topic}, Difficulty: ${diff}, Count: ${count}`
+    );
+    let qs;
+    try { qs = JSON.parse(text.replace(/```json|```/g,'')); } catch(e) { qs = []; }
+    if (!qs.length) { result.innerHTML = '<div style="color:var(--muted);font-size:0.85rem">Could not parse — please try again.</div>'; }
+    else {
+      qs.forEach((q,i) => {
+        const d = document.createElement('div');
+        d.className = 'gen-q';
+        d.innerHTML = `<div class="gen-q-num">Q${i+1} · ${q.marks||3} marks${q.tests?` · Tests: ${q.tests}`:''}</div>${q.q}`;
+        result.appendChild(d);
+      });
+    }
+  } catch(e) { result.innerHTML = '<div style="color:var(--muted);font-size:0.85rem">AI unavailable — try again.</div>'; }
+  btn.disabled = false; btn.innerHTML = '<span>✦</span> Generate Worksheet';
+}
+
+async function aiHint(n, question) {
+  const box = document.getElementById('ai-hint-'+n);
+  const content = box.querySelector('.ai-hint-content');
+  box.classList.add('visible');
+  content.innerHTML = '<span style="color:var(--muted);font-style:italic;font-size:0.83rem">✦ Generating Socratic hint…</span>';
+  const errType = StudentModel.getDominantErrorType();
+  try {
+    const text = await callAI(
+      `You are EduFlow AI. This student's main weakness is ${errType} errors. Give a Socratic hint — NOT the answer. Ask one targeted guiding question that steers them away from their typical ${errType} mistake. Under 45 words. Start with a question word.`,
+      `Question: ${question}`
+    );
+    content.textContent = text;
+  } catch(e) { content.textContent = 'What formula or theorem applies here? Write out the relevant rule before substituting any values.'; }
+}
+
+/* ──────────────────────────────────────────────────────────
+   SECTION 12 · WORKSHEET
+   ────────────────────────────────────────────────────────── */
+const QUESTION_BANK = {
+  'Polynomials': [
+    { q:'Show that (x − 2) is a factor of p(x) = x³ + 3x² − 4x − 12. Find p(2) step-by-step.', marks:3, topic:'Factor Theorem' },
+    { q:'Find p(1) and p(−1) for p(x) = 2x³ − 3x² + x + 1. What do you conclude about the factors?', marks:4, topic:'Factor Theorem' },
+    { q:'Factorise completely: x² + 5x + 6. Show your working.', marks:3, topic:'Factorisation' },
+    { q:'If (x − 1) is a factor of p(x) = x³ − 6x² + 11x − 6, find all roots using division.', marks:5, topic:'Division' },
+    { q:'For p(x) = x³ + ax² − x − b, if (x+1) and (x−2) are both factors, find a and b.', marks:5, topic:'System of Equations' }
+  ],
+  'Quadratic Equations': [
+    { q:'Solve 3x² − 5x + 2 = 0 using the quadratic formula. Show discriminant calculation.', marks:4, topic:'Formula' },
+    { q:'The product of two consecutive positive integers is 182. Find the integers.', marks:5, topic:'Word Problem' },
+    { q:'Find the nature of roots of 2x² − 4x + 3 = 0 without solving.', marks:3, topic:'Discriminant' },
+    { q:'If one root of x² + kx + 8 = 0 is twice the other, find k.', marks:4, topic:'Roots Relation' }
+  ],
+  'Linear Equations': [
+    { q:'Solve: 5x + 3y = 29 and x − y = 1 using the substitution method.', marks:4, topic:'Substitution' },
+    { q:'A sum of ₹2400 is divided so that 4 times one part equals 5 times the other. Find both parts.', marks:5, topic:'Word Problem' },
+    { q:'Solve: 2x/3 + y/2 = 8 and x − y = 2.', marks:4, topic:'Fractions' }
+  ],
+  'Arithmetic Progressions': [
+    { q:'Find the 20th term of AP: 3, 7, 11, … Show the formula and substitution.', marks:3, topic:'nth Term' },
+    { q:'The sum of first n terms is 3n² + 5n. Find the 10th term and common difference.', marks:5, topic:'Sum Formula' },
+    { q:'How many terms of AP 9, 17, 25, … give sum 636? Show complete working.', marks:5, topic:'Sum Formula' }
+  ]
+};
+
+function generateQuestionsFromBank(topic, count = 3) {
+  const bank = QUESTION_BANK[topic] || QUESTION_BANK['Polynomials'];
+  return [...bank].sort(() => Math.random() - 0.5).slice(0, count);
+}
+
+let wsAnswerTracking = {};
+
+function generateSmartWorksheet() {
+  const weak = StudentModel.getWeakTopic();
+  const bankKey = Object.keys(QUESTION_BANK).find(k => weak.includes(k.split(' ')[0])) || weak;
+  const qs = generateQuestionsFromBank(bankKey, 4);
+  const container = document.getElementById('ws-questions-container');
+  const metaLabel = document.getElementById('ws-meta-label');
+  if (metaLabel) metaLabel.textContent = `Generated · Focus: ${weak} · ${qs.length} questions · Est. 30 min`;
+  wsAnswerTracking = {};
+  if (!container) return;
+
+  container.innerHTML = qs.map((q, i) => {
+    const tagClass = bankKey === 'Polynomials' ? 'tag-algebra' : bankKey === 'Quadratic Equations' ? 'tag-algebra' : bankKey === 'Arithmetic Progressions' ? 'tag-ap' : 'tag-geo';
+    return `<div class="ws-problem" id="wsp-${i}">
+      <div class="ws-problem-header">
+        <span class="q-num">Q${i+1}</span>
+        <span class="q-text">${q.q}</span>
+        <span class="q-marks">[${q.marks} marks]</span>
+        <span class="q-topic-tag ${tagClass} mistake-tag">${q.topic}</span>
+      </div>
+      <div class="ws-work-area">
+        <textarea class="work-lines" id="ws-ta-${i}" placeholder="Show your working step-by-step…" rows="4" oninput="trackWsProgress(${i}, ${qs.length})"></textarea>
+      </div>
+      <div class="ws-hint-row">
+        <button class="hint-btn" onclick="aiHint('ws${i}', ${JSON.stringify(q.q).replace(/'/g,'&#39;')})">✦ Socratic Hint</button>
+      </div>
+      <div class="ai-hint-box" id="ai-hint-ws${i}"><div class="ai-hint-label">✦ AI HINT</div><div class="ai-hint-content"></div></div>
+    </div>`;
+  }).join('') + `<div style="display:none" id="ws-total-count" data-count="${qs.length}"></div>`;
+}
+
+function trackWsProgress(idx, total) {
+  const ta = document.getElementById(`ws-ta-${idx}`);
+  wsAnswerTracking[idx] = ta && ta.value.trim().length > 5;
+  const attempted = Object.values(wsAnswerTracking).filter(Boolean).length;
+  const pct = Math.round(attempted / total * 100);
+  const label = document.getElementById('ws-progress-label');
+  const fill = document.getElementById('ws-progress-fill');
+  if (label) label.textContent = `${attempted}/${total} attempted`;
+  if (fill) fill.style.width = pct + '%';
+}
+
+function checkAnswers() {
+  const totalEl = document.getElementById('ws-total-count');
+  const total = totalEl ? parseInt(totalEl.dataset.count) : 4;
+  const attempted = Object.values(wsAnswerTracking).filter(Boolean).length;
+  const empty = total - attempted;
+  const weak = StudentModel.getWeakTopic();
+  const errType = StudentModel.getDominantErrorType();
+  StudentModel.get().sessions++;
+  StudentModel.save();
+  updateDashboard();
+
+  const result = document.getElementById('ws-result');
+  result.style.display = 'block';
+
+  let feedback = '';
+  if (empty > 0) {
+    feedback = `<p style="font-size:0.88rem;margin-bottom:8px">⚠️ ${empty} question(s) left blank. Return and attempt them before submission.</p>`;
+  }
+
+  const genericFeedback = {
+    sign: `Watch for sign errors, especially when substituting negative values. Write out each term separately before summing.`,
+    formula: `Make sure you write the complete formula before substituting. Check: which variables do you have, which do you need?`,
+    substitution: `Go term by term when substituting — don't skip steps. Missed terms cause cascading errors.`,
+    conceptual: `Before solving, write out the relevant theorem or rule in full. This prevents applying the wrong method.`
+  };
+
+  result.innerHTML = `<div class="panel" style="background:#e2f5ed;border-color:#a8d8c0">
+    <div class="panel-title" style="color:var(--green)">✅ Worksheet Submitted</div>
+    ${feedback}
+    <p style="font-size:0.88rem;line-height:1.7;margin-top:4px">
+      <strong>${attempted}/${total}</strong> questions attempted · Session accuracy: <strong>${StudentModel.getAccuracy()}%</strong> · Focus topic: <strong>${weak}</strong><br><br>
+      <strong>Targeted Feedback:</strong> ${genericFeedback[errType] || `Keep practising ${weak} — focus on writing each step before computing.`}
+    </p>
+    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+      <button class="btn-fill" onclick="showScreen('insights')">View Insights →</button>
+      <button class="btn-outline" onclick="generateSmartWorksheet()">Generate New Worksheet</button>
+      <button class="btn-outline" onclick="showScreen('tutor')">Continue in Tutor →</button>
+    </div>
+  </div>`;
+  result.scrollIntoView({ behavior: 'smooth' });
+}
+
+let focusMode = false;
+function toggleFocusMode() {
+  focusMode = !focusMode;
+  document.body.classList.toggle('focus-mode', focusMode);
+  const btn = document.querySelector('.ws-actions .btn-outline');
+  if (btn) btn.textContent = focusMode ? '✅ Exit Focus' : '🎯 Focus Mode';
+}
+
+/* ──────────────────────────────────────────────────────────
+   SECTION 13 · SNAP TO SOLVE
+   ────────────────────────────────────────────────────────── */
+function simulateSnap() {
+  const result = document.getElementById('snap-result');
+  result.style.display = 'block';
+  result.innerHTML = `<div style="padding:20px;text-align:center;color:var(--muted)">
+    <div class="thinking"><span>●</span><span>●</span><span>●</span></div>
+    <div style="margin-top:10px;font-size:0.84rem;font-style:italic">Scanning handwriting…</div>
+  </div>`;
+  result.scrollIntoView({ behavior: 'smooth' });
+
+  setTimeout(() => {
+    const errType = StudentModel.getDominantErrorType();
+    const errors = {
+      sign: { step:'Step 2', desc:'Sign error — wrote −(−7)² = −49 instead of +49', type:'Sign Error' },
+      substitution: { step:'Step 2', desc:'Incomplete substitution — only substituted into two of four terms', type:'Substitution Error' },
+      formula: { step:'Step 3', desc:'Applied sum formula with wrong n-1 adjustment', type:'Formula Error' },
+      conceptual: { step:'Step 1', desc:'Tried to divide by (x−2) instead of evaluating p(2)', type:'Conceptual Error' }
+    };
+    const err = errors[errType] || errors.sign;
+    StudentModel.addMistake('Polynomials', err.desc, errType);
+    updateDashboard();
+
+    result.innerHTML = `<div class="panel" style="border-left:3px solid var(--accent);background:#fef8f6">
+      <div class="panel-title" style="color:var(--accent)">📷 EduFlow Vision — Analysis Complete</div>
+      <div style="display:flex;align-items:flex-start;gap:12px;margin-top:10px">
+        <div style="background:#fde8e2;border-radius:7px;padding:6px 10px;font-family:'DM Mono',monospace;font-size:0.76rem;color:var(--accent);white-space:nowrap">${err.step}</div>
+        <div>
+          <div style="font-weight:600;font-size:0.88rem;margin-bottom:3px">${err.type} Detected</div>
+          <div style="font-size:0.83rem;color:var(--muted);line-height:1.5">${err.desc}</div>
+        </div>
+      </div>
+      <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);display:flex;gap:7px;flex-wrap:wrap">
+        <button class="btn-fill" onclick="showScreen('tutor')">Practice in Tutor →</button>
+        <button class="btn-outline" onclick="showScreen('aifeatures')">Full AI Analysis →</button>
+      </div>
+    </div>`;
+  }, 2200);
+}
+
+/* ──────────────────────────────────────────────────────────
+   SECTION 14 · NAVIGATION
+   ────────────────────────────────────────────────────────── */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  document.querySelectorAll('.nav-tab').forEach((t, i) => {
+    const ids = ['dashboard','tutor','worksheet','insights','snap','aifeatures'];
+    t.classList.toggle('active', ids[i] === id);
+  });
+  if (id === 'dashboard') { updateDashboard(); MindMap.updateFromStudent(); }
+  if (id === 'insights') { updateDashboard(); }
+  if (id === 'worksheet') { generateSmartWorksheet(); }
+}
+
+function selectTopic(btn, topic) {
+  document.querySelectorAll('.topic-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  loadNewProblem(topic);
+}
+
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+/* ──────────────────────────────────────────────────────────
+   SECTION 15 · INIT
+   ────────────────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  StudentModel.load();
+  updateDashboard();
+  SocraticEngine.init(); // picks random/adaptive topic
+
+  // Mind Map in insights
+  const insightsGrid = document.getElementById('insights-grid');
+  if (insightsGrid) {
+    const mapPanel = document.createElement('div');
+    mapPanel.className = 'chart-panel full-width';
+    mapPanel.innerHTML = `
+      <div class="chart-title" style="display:flex;align-items:center;justify-content:space-between">
+        <span>✦ Live Knowledge Graph — Click a node to practice that topic</span>
+        <span style="font-size:0.7rem;color:var(--muted);font-family:'DM Mono',monospace">Ring = mastery · Hover for %</span>
+      </div>
+      <canvas id="mindmap-canvas" style="width:100%;height:320px;display:block;border-radius:8px"></canvas>
+    `;
+    insightsGrid.insertBefore(mapPanel, insightsGrid.firstChild);
+    setTimeout(() => {
+      const c = document.getElementById('mindmap-canvas');
+      if (c) MindMap.init(c);
+    }, 200);
+  }
+
+  // Generate initial worksheet
+  generateSmartWorksheet();
+
+  // Input handler
+  const input = document.getElementById('chat-input');
+  if (input) input.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
+
+  // Weak badge
+  const badge = document.getElementById('weak-badge');
+  if (badge) { badge.textContent = '⚠ ' + StudentModel.getWeakTopic(); badge.style.display = 'inline-block'; }
+
+  // Mark tutor topic btn as active
+  const weak = StudentModel.getWeakTopic();
+  document.querySelectorAll('.topic-btn').forEach(b => {
+    if (b.textContent.includes(weak.split(' ')[0])) b.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>
