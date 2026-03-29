@@ -6,7 +6,8 @@
 
 ## 📸 Screenshot / Demo
 
-![EduFlow AI Demo](demo.png)
+![Demo1](demo.png)
+![Demo2](demo2.png)
 
 ---
 
